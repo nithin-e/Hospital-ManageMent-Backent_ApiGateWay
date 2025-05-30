@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package Auth;
+
+
+
+
+service AuthService {
+
+  rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);
+   rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+
+}
+
+
+message ValidateTokenRequest {
+  string token = 1;          
+  string required_role = 2;  
+}
+
+
+message ValidateTokenResponse {
+  bool is_valid = 1;        
+  bool has_required_role = 2; 
+  string user_id = 3;            
+  repeated string user_roles = 4;     
+  string message =5;
+}
+
+
+
+
+message RefreshTokenRequest {
+    string token = 1;
+}
+
+message RefreshTokenResponse {
+    bool success = 1;
+    string accessToken = 2;
+    string refreshToken = 3;
+    string message = 4;
+    string user_id = 5;
+}
+
+
+
+
+
+
+
+
+
+

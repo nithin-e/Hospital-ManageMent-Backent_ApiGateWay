@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+package notification;
+
+import "google/protobuf/timestamp.proto";
+
+service NotificationService {
+    rpc CreateNotification(CreateNotificationRequest) returns (NotificationResponse);
+    rpc fecthAllNotifications (fecthAllNotificationsRequest) returns (fecthAllNotificationsResponse){}
+    rpc HandleStripeWebhook(StripeWebhookRequest) returns (StripeWebhookResponse) {}
+    rpc handleCanceldoctorApplication (handleCanceldoctorApplicationRequest)  returns (handleCanceldoctorApplicationResponse) {}
+}
+
+
+
+message handleCanceldoctorApplicationRequest  {
+  string email = 1;
+  repeated string reasons = 2;  
+}
+
+message handleCanceldoctorApplicationResponse {
+  Notification notification = 1; 
+}
+
+message StripeWebhookRequest {
+  string event_type = 1;
+  string event_data = 2;
+}
+
+message StripeWebhookResponse {
+  bool success = 1;
+  string message = 2;
+  string email = 3;
+}
+
+message fecthAllNotificationsRequest {
+  string email = 1; 
+}
+
+
+message fecthAllNotificationsResponse {
+    repeated Notification notification = 1;
+    bool success = 2; 
+}
+
+
+message Notification {
+  string id = 1; 
+  string user_id = 2;
+  string title = 3; 
+  string message = 4;
+  NotificationType type = 5; 
+  bool is_read = 6; 
+  google.protobuf.Timestamp created_at = 7;
+  int64 payment_amount = 8; 
+  string payment_link = 9; 
+  PaymentStatus payment_status = 10; 
+}
+
+
+message CreateNotificationRequest {
+  string email = 1;
+}
+
+message NotificationResponse {
+  Notification notification = 1; 
+}
+
+
+enum NotificationType {
+  TYPE_UNSPECIFIED = 0;
+  TYPE_INFO = 1;
+  TYPE_APPROVAL = 2;
+  TYPE_PAYMENT = 3;
+  TYPE_ALERT = 4;
+}
+
+enum PaymentStatus {
+  STATUS_UNSPECIFIED = 0;
+  PENDING = 1;
+  COMPLETED = 2;
+  FAILED = 3;
+}

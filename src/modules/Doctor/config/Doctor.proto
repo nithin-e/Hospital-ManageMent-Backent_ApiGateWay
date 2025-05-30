@@ -1,0 +1,101 @@
+syntax = "proto3";
+
+package Doctor;
+
+service DoctorService {
+  rpc StoreAppointmentSlots(StoreAppointmentSlotsRequest) returns (StoreAppointmentSlotsResponse) {}
+  rpc fetchingDoctorSlots (fetchingDoctorSlotsRequest) returns (fetchingDoctorSlotsResponse) {}
+  rpc fetchingAppontMentSlotes (fetchingAppontMentSlotesRequest) returns (fetchingAppontMentSlotesResponse) {}
+  rpc StoreAppointMent  (StoreAppointMentRequest) returns (StoreAppointMentResponse) {}
+}
+
+message StoreAppointMentRequest {
+  string name = 1;           
+  string email = 2;           
+  string phone = 3;          
+  string date = 4;            
+  string time = 5;           
+  string notes = 6;           
+  string doctor = 7;          
+  string specialty = 8;       
+  string userEmail = 9;      
+}
+
+message StoreAppointMentResponse {
+  bool success = 1;           
+  string message = 2;         
+  string appointment_id = 3;  
+}
+
+message fetchingAppontMentSlotesRequest {
+  string email = 1;
+}
+
+message SlotInfo {
+  string id = 1;
+  string time = 2;
+  bool is_booked = 3;
+}
+
+message DateSlots {
+  string date = 1;
+  repeated SlotInfo slots = 2;
+}
+
+message fetchingAppontMentSlotesResponse {
+  bool success = 1;
+  int32 slots_created = 2;
+  repeated string dates = 3;
+  repeated DateSlots time_slots = 4; 
+}
+
+message fetchingDoctorSlotsRequest {
+  string email = 1;
+}
+
+message fetchingDoctorSlotsResponse {
+   bool success = 1;
+   string message = 2;
+   int32 slots_created = 3;
+   repeated string dates = 4;
+   repeated AppointmentSlot slots = 5;
+}
+
+message TimeSlot {
+  string date = 1;
+  repeated string slots = 2;
+}
+
+message RemainingSlot {
+  string id = 1;
+  string date = 2;
+  string time = 3;
+}
+
+message StoreAppointmentSlotsRequest {
+  string doctor_email = 1;
+  string date_range = 2;
+  repeated string selected_dates = 3;
+  repeated TimeSlot time_slots = 4;
+  string action = 5;
+  repeated string removed_slot_ids = 6;
+  repeated RemainingSlot remaining_slots = 7;
+}
+
+message StoreAppointmentSlotsResponse {
+  bool success = 1;
+  string message = 2;
+  int32 slots_created = 3;
+  repeated string dates = 4;
+  int32 slots_removed = 5;
+  int32 slots_updated = 6;
+}
+
+message AppointmentSlot {
+  string id = 1;
+  string doctor_id = 2;
+  string date = 3;
+  string time = 4;
+  bool is_booked = 5;
+  string patient_id = 6; 
+}
