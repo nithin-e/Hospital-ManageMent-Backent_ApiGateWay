@@ -9,9 +9,43 @@ service NotificationService {
     rpc fecthAllNotifications (fecthAllNotificationsRequest) returns (fecthAllNotificationsResponse){}
     rpc HandleStripeWebhook(StripeWebhookRequest) returns (StripeWebhookResponse) {}
     rpc handleCanceldoctorApplication (handleCanceldoctorApplicationRequest)  returns (handleCanceldoctorApplicationResponse) {}
+    rpc rescheduleAppointmentNotification (rescheduleAppointmentNotificationRequest) returns (rescheduleAppointmentNotificationResponse) {}
+    rpc CreateCheckoutSession (CreateCheckoutSessionRequest) returns (CreateCheckoutSessionResponse){}
 }
 
+// Updated to match your data structure
+message CreateCheckoutSessionRequest {
+    AppointmentData appointmentData = 1;
+}
 
+// New message for appointment data
+message AppointmentData {
+    string name = 1;
+    string email = 2;
+    string phone = 3;
+    string date = 4;
+    string time = 5;
+    string notes = 6;
+    string doctor = 7;
+    string specialty = 8;
+    string userEmail = 9;
+}
+
+message CreateCheckoutSessionResponse {
+    bool success = 1;
+    string session_id = 2;
+    string checkout_url = 3;
+}
+
+// Rest of your messages remain the same...
+message rescheduleAppointmentNotificationRequest{
+ string email = 1;
+ string time=2;
+}
+
+message rescheduleAppointmentNotificationResponse{
+  bool success = 1;
+}
 
 message handleCanceldoctorApplicationRequest  {
   string email = 1;
@@ -37,12 +71,10 @@ message fecthAllNotificationsRequest {
   string email = 1; 
 }
 
-
 message fecthAllNotificationsResponse {
     repeated Notification notification = 1;
     bool success = 2; 
 }
-
 
 message Notification {
   string id = 1; 
@@ -57,7 +89,6 @@ message Notification {
   PaymentStatus payment_status = 10; 
 }
 
-
 message CreateNotificationRequest {
   string email = 1;
 }
@@ -65,7 +96,6 @@ message CreateNotificationRequest {
 message NotificationResponse {
   Notification notification = 1; 
 }
-
 
 enum NotificationType {
   TYPE_UNSPECIFIED = 0;

@@ -1,3 +1,4 @@
+import { status } from "@grpc/grpc-js";
 import { UserService } from "../user/config/user.client";
 import { DoctorService } from "./config/Doctor.client";
 import { Response, Request } from "express";
@@ -42,7 +43,10 @@ export default class DoctorController {
           doctor_email: appointmentSettings.doctorEmail,
           action: 'update',
           removed_slot_ids: appointmentSettings.removedSlotIds || [],
-          remaining_slots: appointmentSettings.remainingSlots || []
+          remaining_slots: appointmentSettings.remainingSlots || [],
+          new_time_slots:appointmentSettings.newTimeSlots||[]
+     
+
         };
       } else {
         // For create mode
@@ -59,6 +63,11 @@ export default class DoctorController {
         };
       }
   
+
+
+      console.log('...................77777776666666666666777777777................',serviceData);
+      
+
       // Call gRPC Service
       DoctorService.StoreAppointmentSlots(
         serviceData,
@@ -88,46 +97,10 @@ export default class DoctorController {
   }
 
 
-// storeDoctorSlotes = async (req: Request, res: Response): Promise<void> => {
-    
-      
-//     const { appointmentSettings } = req.body;
-  
-  
-  
-//  // API Controller
-// DoctorService.StoreAppointmentSlots(
-//     {
-//       doctor_email: appointmentSettings.doctorEmail,
-//       date_range: appointmentSettings.dateRange,
-//       selected_dates: appointmentSettings.selectedDates,
-//       time_slots: appointmentSettings.timeSlots.map(slot => ({
-//         date: slot.date,
-//         slots: slot.slots
-//       }))
-//     },
-//     async (err: any, result: any) => {
-//       if (err) {
-//         console.log('api doctor controller error', err);
-//         res.status(StatusCode.BadRequest).json({ message: err });
-//       } else {
-
-//        console.log('...check theeee result....',result)
-       
-
-//         res.status(StatusCode.Created).json({
-//            result
-//         });
-//       }
-//     }
-//   );
-// }
 
 
 fetchDoctorSlots = async (req: Request, res: Response): Promise<void> => {
     
-    
-  
  // API Controller
 DoctorService.fetchingDoctorSlots(
     {...req.body},
@@ -137,7 +110,7 @@ DoctorService.fetchingDoctorSlots(
         res.status(StatusCode.BadRequest).json({ message: err });
       } else {
 
-       console.log('...check result....',result)
+       console.log('...check slotes and   result verfiy this....',result)
        
 
         res.status(StatusCode.Created).json({
@@ -172,31 +145,100 @@ DoctorService.fetchingAppontMentSlotes(
 }
 
 
-makingAppointMent = async (req: Request, res: Response): Promise<void> => {
-    console.log('.....makingAppointMent.......',req.body);
+
+
+
+fectingAllUserAppointMents = async (req: Request, res: Response): Promise<void> => {
     
- // API Controller
-DoctorService.StoreAppointMent(
-    {...req.body},
-    async (err: any, result: any) => {
-      if (err) {
-        console.log('api doctor controller error', err);
-        res.status(StatusCode.BadRequest).json({ message: err });
-      } else {
+  // API Controller
+ DoctorService.fectingAllUserAppointMents(
+  {...req.body},
+     async (err: any, result: any) => {
+       if (err) {
+         console.log('api doctor controller error', err);
+         res.status(StatusCode.BadRequest).json({ message: err });
+       } else {
+ 
+        console.log('...check result for fecthing all appointments....',result)
+        
+ 
+         res.status(StatusCode.Created).json({
+            result
+         });
+       }
+     }
+   );
+ }
 
-       console.log('...check result....',result)
-       
 
-        res.status(StatusCode.Created).json({
-           result
-        });
-      }
+
+
+
+ RescheduleAppointment = async (rescheduleData: any) => {
+  try {
+  
+    
+    // Keep camelCase to match protobuf definition
+    const transformedData = {
+      action: rescheduleData.action || '',
+      patientEmail: rescheduleData.patientEmail || '',  // Keep camelCase
+      doctorEmail: rescheduleData.doctorEmail || '',    // Keep camelCase
+      originalSlot: rescheduleData.originalSlot || null, // Keep camelCase
+      newSlot: rescheduleData.newSlot || null           // Keep camelCase
+    };
+ 
+    
+    // Validate the transformed data structure
+    if (!transformedData.action || !transformedData.patientEmail || !transformedData.doctorEmail) {
+      return {
+        data: null,
+        status: 'error',
+        message: 'Missing required fields: action, patientEmail, or doctorEmail'
+      };
     }
-  );
+    
+    if (!transformedData.originalSlot || !transformedData.newSlot) {
+      return {
+        data: null,
+        status: 'error',
+        message: 'Missing required slot information: originalSlot or newSlot'
+      };
+    }
+    
+    return new Promise((resolve, reject) => {
+      DoctorService.rescheduleAppointment(
+        transformedData,  
+        async (err: any, result: any) => {
+          if (err) {
+            console.log('API doctor controller error:', err);
+            const errorResponse = {
+              data: err,
+              status: 'error',
+              message: 'Failed to reschedule appointment'
+            };
+            resolve(errorResponse);
+          } else {
+            console.log('Reschedule appointment result:', result);
+            const successResponse = {
+              data: result,
+              status: 'success',
+              message: 'Appointment rescheduled successfully'
+            };
+            resolve(successResponse);
+          }
+        }
+      );
+    });
+    
+  } catch (error) {
+    console.error('Controller method error:', error);
+    return {
+      data: error,
+      status: 'error',
+      message: 'Unexpected error occurred'
+    };
+  }
 }
-
-
-
 
 
 }

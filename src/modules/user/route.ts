@@ -27,5 +27,15 @@ userRoute.post('/forgetPassword',controller.changingPassword)
 userRoute.post('/fetchDoctorDashBoardData',controller.fetchDoctorDashBoardData)
 userRoute.post('/fectingUserProfileData',AuthController.validateTokens('user'),controller.fectingUserProfileData)
 userRoute.post('/changing_UserPassWord',AuthController.validateTokens('user'),controller.changing_UserPassWord)
+userRoute.get('/fecthAllDoctors',AuthController.validateTokens('user'),controller.FectFullDoctors)
+userRoute.post('/fectingAppointMentSlotes',AuthController.validateTokens('user'),controller.fetchAppontMentSlotes)
+userRoute.post('/makingAppointMent',AuthController.validateTokens('user'),controller.makingAppointMent)
+userRoute.post('/fectingAppointMent',AuthController.validateTokens('user'),controller.fectingUserAppointMents)
+userRoute.post('/ChangingUserInfo',AuthController.validateTokens('user'),controller.ChangingUserInformations)
+userRoute.post('/create-checkout-session',AuthController.validateTokens('user'),controller.create_checkOutSession_in_Stripe)
+userRoute.post('/CancelingUserAppointMent',AuthController.validateTokens('user'),controller.CancelingUserAppointMent)
+
+
+
 
 export default userRoute;

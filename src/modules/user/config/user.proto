@@ -16,6 +16,87 @@ service User {
   rpc FetchDoctorDashBoardData  (FetchDoctorDashBoardDataRequest) returns (FetchDoctorDashBoardDataResponse) {}
   rpc fectingUserProfileDatas (fectingUserProfileDatasRequest) returns (fectingUserProfileDatasResponse) {}
   rpc changingUserPassWord (changingUserPassWordRequest) returns (changingUserPassWordResponse) {}
+  rpc ChangingUserInfo (ChangingUserInfoRequest) returns (ChangingUserInfoResponse) {}
+  rpc SearchUsers(SearchUsersRequest) returns (SearchUsersResponse){}
+  rpc BlockUser(BlockUserRequest) returns (BlockUserResponse){}
+  rpc UnblockUser(UnblockUserRequest) returns (UnblockUserResponse){}
+}
+
+
+message UnblockUserRequest {
+  string id = 1;
+}
+
+message UnblockUserResponse{
+   bool success = 1;
+  string message = 2;
+}
+
+message BlockUserRequest{
+ string id = 1;
+}
+
+
+message BlockUserResponse{
+  bool success = 1;
+  string message = 2;
+}
+
+message UserFilters {
+  string role = 1;              
+  bool isActive = 2;            
+  string createdAfter = 3;      
+  string createdBefore = 4;    
+}
+
+message Pagination {
+  int32 page = 1;               
+  int32 limit = 2;             
+  int32 offset = 3;         
+}
+
+message Sorting {
+  string field = 1;            
+  string order = 2;             
+}
+
+message Userr {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  string profilePicture = 4;
+  bool isActive = 5;
+  string role = 6;
+  string createdAt = 7;
+  string updatedAt = 8;
+  string lastLoginAt = 9;
+}
+
+// Search Users
+message SearchUsersRequest {
+  string searchQuery = 1;
+  
+}
+
+message SearchUsersResponse {
+  repeated Userr users = 1;
+  int32 totalCount = 2;
+  int32 activeCount = 3;
+  int32 blockedCount = 4;
+  bool success = 5;
+  string message = 6;
+}
+
+
+message ChangingUserInfoRequest {
+  string email = 1 ;
+  string name = 2 ;
+  string phoneNumber = 3 ;
+}
+
+
+message ChangingUserInfoResponse {
+  bool success = 1 ;
 }
 
 

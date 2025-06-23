@@ -9,8 +9,8 @@ const AuthController=new authController()
 DoctorRouter.post('/appointment-slots',AuthController.validateTokens('doctor'),DoctorControllers.storeDoctorSlotes)
 DoctorRouter.post('/fetchDoctorSlots',AuthController.validateTokens('doctor'),DoctorControllers.fetchDoctorSlots)
 DoctorRouter.post('/fectingAppointMentSlotes',AuthController.validateTokens('doctor'),DoctorControllers.fetchAppontMentSlotes)
-DoctorRouter.post('/makingAppointMent',DoctorControllers.makingAppointMent)
+DoctorRouter.get('/fectingAllUserAppointMents',AuthController.validateTokens('doctor'),DoctorControllers.fectingAllUserAppointMents)
 
-
+// fectingAllUserAppointMents
 
 export default DoctorRouter

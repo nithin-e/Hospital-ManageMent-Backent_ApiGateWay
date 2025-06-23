@@ -1,6 +1,8 @@
 import { Response, Request } from "express";
 import { UserService } from "./config/user.client"
 import uploadToS3 from "../../services/s3";
+import { DoctorService } from "../Doctor/config/Doctor.client";
+import { NotificationService } from "../Notifications/config/notification.client";
 
 
 
@@ -16,7 +18,8 @@ const StatusCode = {
   };
 
 export default class userController {
-  register = async (req: Request, res: Response): Promise<void> => {
+
+register = async (req: Request, res: Response): Promise<void> => {
   console.log('machaneeeeeeee rahathalle', req.body);
   const registerRequest = {
     name: req.body.name,
@@ -42,7 +45,7 @@ export default class userController {
   }
   }
 
-  checkUser = async (req: Request, res: Response): Promise<void> => {
+checkUser = async (req: Request, res: Response): Promise<void> => {
   
     UserService.CheckUser(
       { ...req.body },  
@@ -60,7 +63,7 @@ export default class userController {
   };
 
 
-  loginUser=async(req:Request,res:Response):Promise<void>=>{
+loginUser=async(req:Request,res:Response):Promise<void>=>{
 
     console.log('.....',req.body)
     UserService.LoginUser(
@@ -84,7 +87,7 @@ export default class userController {
 
 
 
-  storingDoctorData = async(req: Request, res: Response): Promise<void> => {
+storingDoctorData = async(req: Request, res: Response): Promise<void> => {
     try {
       console.log('Doctor data received:', req.body);
       
@@ -132,7 +135,7 @@ export default class userController {
 
 
 
-  changingPassword=async(req:Request,res:Response):Promise<void>=>{
+changingPassword=async(req:Request,res:Response):Promise<void>=>{
 
     console.log('.foget pass....',req.body)
     UserService.ResetPassword(
@@ -154,7 +157,7 @@ export default class userController {
 
 
 
-  fetchDoctorDashBoardData = async(req: Request, res: Response): Promise<void> => {
+fetchDoctorDashBoardData = async(req: Request, res: Response): Promise<void> => {
     console.log('.fetching doctor data....', req.body);
     
     UserService.FetchDoctorDashBoardData(
@@ -179,7 +182,7 @@ export default class userController {
   }
 
 
- fectingUserProfileData = async(req: Request, res: Response): Promise<void> => {
+fectingUserProfileData = async(req: Request, res: Response): Promise<void> => {
     console.log('.fetching user req.body....', req.body);
     
     UserService.fectingUserProfileDatas(
@@ -198,7 +201,7 @@ export default class userController {
 
 
 
- changing_UserPassWord = async(req: Request, res: Response): Promise<void> => {
+changing_UserPassWord = async(req: Request, res: Response): Promise<void> => {
     console.log('.fetching user req.body....', req.body);
     
     UserService.changingUserPassWord(
@@ -216,7 +219,153 @@ export default class userController {
   }
 
 
+FectFullDoctors = async (req: Request, res: Response): Promise<void> => {
+        try {
+           
+            const request = {};
+            
+            UserService.FetchAllDoctors(request, (err: any, result: any) => {
+                if (err) {
+                    console.log('err from api gate way in admin controller', err);
+                    res.status(StatusCode.BadRequest).json({ message: err.message });
+                } else {
+                   console.log('success fully retraived the all doctod',result);
+                   
+                    res.status(StatusCode.OK).json(result); 
+                }
+            });
+            
+        } catch (error) {
+            console.log('Unexpected error:', error);
+            res.status(StatusCode.InternalServerError).json({ message: 'Server error' });
+        }
+    }
+
+
+fetchAppontMentSlotes = async (req: Request, res: Response): Promise<void> => {
+    
+      // API Controller
+     DoctorService.fetchingAppontMentSlotes(
+         {...req.body},
+         async (err: any, result: any) => {
+           if (err) {
+             console.log('api doctor controller error', err);
+             res.status(StatusCode.BadRequest).json({ message: err });
+           } else {
+     
+            console.log('...check result....',result)
+            
+     
+             res.status(StatusCode.Created).json({
+                result
+             });
+           }
+         }
+       );
+     }
+
+
+makingAppointMent = async (req: Request, res: Response): Promise<void> => {
+      console.log('.....makingAppointMent.......',req.body);
+      
+   // API Controller
+  DoctorService.StoreAppointMent(
+      {...req.body},
+      async (err: any, result: any) => {
+        if (err) {
+          console.log('api doctor controller error', err);
+          res.status(StatusCode.BadRequest).json({ message: err });
+        } else {
   
+         console.log('...check result....',result)
+         
+  
+          res.status(StatusCode.Created).json({
+             result
+          });
+        }
+      }
+    );
+  }
+
+
+fectingUserAppointMents = async(req: Request, res: Response): Promise<void> => {
+    console.log('.fetching user req.body....', req.body);
+    
+    DoctorService.fectingUserAppointMents(
+      {...req.body},
+      (err: any, result: any) => {
+        if (err) {
+          console.log('api controller error', err);
+          res.status(StatusCode.BadRequest).json({ message: err });
+        } else {
+          console.log('user appointments responce in api gateway:', result);
+          res.status(StatusCode.Created).json(result);
+        }
+      }
+    );
+  }
+
+
+ChangingUserInformations = async(req: Request, res: Response): Promise<void> => {
+    console.log('.user infomationm while the editing tyme....', req.body);
+    
+    UserService.ChangingUserInfo(
+      {...req.body},
+      (err: any, result: any) => {
+        if (err) {
+          console.log('api controller error', err);
+          res.status(StatusCode.BadRequest).json({ message: err });
+        } else {
+          console.log('user appointments responce in api gateway:', result);
+          res.status(StatusCode.Created).json(result);
+        }
+      }
+    );
+  }
+
+
+  
+  create_checkOutSession_in_Stripe = async (req: Request, res: Response): Promise<void> => {
+    console.log('ye yee yeee yee bro check it here', req.body);
+    
+    NotificationService.CreateCheckoutSession(
+        {...req.body}, // This contains appointmentData
+        (err: any, result: any) => {
+            if (err) {
+                console.log('api controller error', err);
+                res.status(StatusCode.BadRequest).json({ message: err });
+            } else {
+                console.log('stripe check out session response:', result);
+                res.status(StatusCode.Created).json(result);
+            }
+        }
+    )
+}
+
+
+
+
+CancelingUserAppointMent = async(req: Request, res: Response): Promise<void> => {
+  console.log('.check the data while the user appoinment cancell tyme....', req.body);
+  
+  DoctorService.CancelUserAppointMent(
+    {...req.body},
+    (err: any, result: any) => {
+      if (err) {
+        console.log('api controller error', err);
+        res.status(StatusCode.BadRequest).json({ message: err });
+      } else {
+        console.log('user appointments responce in api gateway:', result);
+        res.status(StatusCode.Created).json(result);
+      }
+    }
+  );
+}
+
+
+
+
 
 
 }
