@@ -22,7 +22,7 @@ userRoute.post('/applyDoctor',
     controller.storingDoctorData
 )
 
-
+//fectingAppointMent
 userRoute.post('/forgetPassword',controller.changingPassword)
 userRoute.post('/fetchDoctorDashBoardData',controller.fetchDoctorDashBoardData)
 userRoute.post('/fectingUserProfileData',AuthController.validateTokens('user'),controller.fectingUserProfileData)

@@ -213,6 +213,9 @@ UpdateDbAfterPayment = async (req: Request, res: Response): Promise<void> => {
         specialty: session.metadata?.specialty,
         userEmail: session.metadata?.userEmail,
         notes: session.metadata?.notes || '',
+        userId: session.metadata?.patientId || '',
+        doctorId: session.metadata?.doctorId || '',
+       
       };
 
       console.log('Appointment data extracted:', appointmentData);

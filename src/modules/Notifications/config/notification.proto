@@ -13,6 +13,8 @@ service NotificationService {
     rpc CreateCheckoutSession (CreateCheckoutSessionRequest) returns (CreateCheckoutSessionResponse){}
 }
 
+//CreateCheckoutSession
+
 // Updated to match your data structure
 message CreateCheckoutSessionRequest {
     AppointmentData appointmentData = 1;
@@ -29,6 +31,8 @@ message AppointmentData {
     string doctor = 7;
     string specialty = 8;
     string userEmail = 9;
+    string userId = 10;
+    string doctorId = 11;
 }
 
 message CreateCheckoutSessionResponse {

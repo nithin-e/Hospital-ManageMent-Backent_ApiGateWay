@@ -16,14 +16,12 @@ import doctorRouter from './modules/Doctor/DoctorRoute'
 import authRoute from "./modules/auth/route";
 
 // You'll need to import your controller here
- import userBlockController from './modules/user/controller';
+import userBlockController from './modules/user/controller';
 import { UserService } from "./modules/user/config/user.client";
 import DoctorController from './modules/Doctor/DoctorController'
-const DoctorControllers=new DoctorController()
+const DoctorControllers = new DoctorController()
 import NotificationController from './modules/Notifications/Notecontroller'
 const NoteController = new NotificationController()
-
-
 
 
 class App {
@@ -31,17 +29,20 @@ class App {
   private httpServer: http.Server;
   private io: SocketIOServer;
   private adminNamespace: any;
+  private static instance: App; // Singleton instance
+  private userSocketMap: Map<string, { socketId: string; role: string }> = new Map(); 
 
   constructor() {
     this.app = express();
     this.httpServer = http.createServer(this.app);
+    App.instance = this; 
     this.setupSocketIO();
     this.applyMiddleware();
     this.routes();
     this.setupSocketHandlers();
   }
 
-  private setupSocketIO(): void {
+  public setupSocketIO(): void {
     // Log frontend URL for CORS
     const frontendUrl = process.env.NODE_ENV === 'dev' ? 
       "http://localhost:3001" : 
@@ -64,26 +65,45 @@ class App {
   }
 
   private setupSocketHandlers(): void {
-    // Socket.io event handlers
     this.adminNamespace.on('connection', (socket: any) => {
       console.log('Admin client connected:', socket.id);
-      
-      // Handle user block via socket
+    
+      socket.on('register', async (data: any) => {
+        console.log('Raw register data received.....................:', data);
+        
+        const { userId, role, email } = data;
+        
+        console.log('User registered:', userId, 'with role:', role, 'email:', email, 'socketId:', socket.id);
+        
+        const userInfo = {
+            socketId: socket.id,
+            role: role,
+            userId: userId,
+            email: email
+        };
+        
+        // Store by both userId and email for flexible access
+        this.userSocketMap.set(userId, userInfo);
+        if (email) {
+            this.userSocketMap.set(email, userInfo);
+        }
+    });
+
+    
       socket.on('block_user', async (userData: { userId: string }, callback: (response: any) => void) => {
         console.log('Received block_user event with data:', userData);
         try {
+          // Instead of going through the controller, call the service directly
+          const result = await new Promise((resolve, reject) => {
+            UserService.BlockUser(
+              { id: userData.userId },
+              (err: any, result: any) => {
+                if (err) reject(err);
+                else resolve(result);
+              }
+            );
+          });  
           
-
-               // Instead of going through the controller, call the service directly
-               const result = await new Promise((resolve, reject) => {
-                      UserService.BlockUser(
-                        { id: userData.userId },
-                            (err: any, result: any) => {
-                                if (err) reject(err);
-                                 else resolve(result);
-                             }
-                               );
-                           });  
           // Emit user status update to all admin clients
           this.adminNamespace.emit('user_status_updated', { 
             userId: userData.userId, 
@@ -102,16 +122,15 @@ class App {
         try {
           console.log('Received unblock_user event with data:', userData);
 
-
           const result = await new Promise((resolve, reject) => {
             UserService.UnblockUser(
               { id: userData.userId },
-                  (err: any, result: any) => {
-                      if (err) reject(err);
-                       else resolve(result);
-                   }
-                     );
-                 }); 
+              (err: any, result: any) => {
+                if (err) reject(err);
+                else resolve(result);
+              }
+            );
+          }); 
     
           // Emit user status update to all admin clients
           this.adminNamespace.emit('user_status_updated', { 
@@ -166,11 +185,8 @@ class App {
               newAppointmentTime
             );
             
-            
-            
             console.log('Notification................ results:', { 
               patient: patientNotificationRes, 
-              // doctor: doctorNotificationRes 
             });
             
             callback({ 
@@ -194,37 +210,108 @@ class App {
         }
       });
 
-
-
-
       // Handle fetch notifications
-socket.on('fetchNotifications', async (data: { email: string }) => {
-  console.log('Received fetchNotifications event with email:', data.email);
-  try {
+      socket.on('fetchNotifications', async (data: { email: string }) => {
+        console.log('Received fetchNotifications event with email:', data.email);
+        try {
+          const response = await NoteController.fetchAllNotifications(data.email)
+          
+          // Emit response back to the client
+          socket.emit('notificationsResponse', response);
+          
+        } catch (error: any) {
+          console.error('Error fetching notifications:', error);
+          socket.emit('notificationsResponse', { 
+            success: false, 
+            error: error.message 
+          });
+        }
+      })
+
+      socket.on('sendMessage', async (messageData) => {
+      
+        console.log('bro plz check here <<<>>>',messageData);
+        
+        interface MessageResponse {
+          success: boolean;
+          message: string;
+          messageId: string;
+          conversationId: string;
+          doctorId: string;
+        }
+        
+         const response = await DoctorControllers.StoringMessagesInDb(messageData)as MessageResponse
+        //  const doctorSocketInfo = App.instance.userSocketMap.get(response.doctorId) 
+         const mapAsObject = Object.fromEntries(this.userSocketMap);
+         console.log('Current userSocketMap as Object:', mapAsObject);
+         
+
+        //  console.log('now u will definetly get the doctor socket id',doctorSocketInfo);
+         
+ 
+      });
+
     
-    const response = await NoteController.fetchAllNotifications(data.email)
-    
-    // Emit response back to the client
-    socket.emit('notificationsResponse', response);
-    
-  } catch (error: any) {
-    console.error('Error fetching notifications:', error);
-    socket.emit('notificationsResponse', { 
-      success: false, 
-      error: error.message 
-    });
-  }
-});
 
 
-
-
-      // Handle disconnection
       socket.on('disconnect', () => {
         console.log('Admin client disconnected:', socket.id);
+        for (const [userId, userInfo] of this.userSocketMap.entries()) {
+          if (userInfo.socketId === socket.id) {
+            this.userSocketMap.delete(userId);
+            console.log(`Removed user ${userId} from socket map`);
+            break;
+          }
+        }
       });
+
     });
   }
+
+
+  // Fixed static method
+ public static sendingAlertIn_DoctorDashboard(appointmentData: any) {
+    console.log("Sending alert to doctor dashboard:", appointmentData);
+    
+    if (!App.instance) {
+        console.error("App instance not available");
+        return;
+    }
+
+
+    
+    const doctorSocketInfo = App.instance.userSocketMap.get(appointmentData.doctorId);
+    const userSocketInfo = App.instance.userSocketMap.get(appointmentData.userId);
+
+  
+    
+    if (doctorSocketInfo) {
+        console.log(`Alert sent to doctor ${appointmentData.doctorEmail} on socket ${doctorSocketInfo.socketId}`);
+
+
+
+        App.instance.adminNamespace.to(doctorSocketInfo.socketId).emit("doctor_alert", {
+          type: "appointment_update",
+          data: appointmentData
+      });
+
+
+    } else {
+        console.log(`Doctor ${appointmentData.doctorEmail} not connected or not found in socket map`);
+    }
+    
+    if (userSocketInfo) {
+        App.instance.adminNamespace.to(userSocketInfo.socketId).emit("user_alert", {
+          type: "appointment_update",
+          data: appointmentData
+      });
+
+
+        console.log(`Alert sent to user ${appointmentData.patientEmail} on socket ${userSocketInfo.socketId}`);
+    } else {
+        console.log(`User ${appointmentData.patientEmail} not connected or not found in socket map`);
+    }
+}
 
   private applyMiddleware(): void {
     console.log("Middleware applied!");
@@ -235,7 +322,7 @@ socket.on('fetchNotifications', async (data: { email: string }) => {
 
     this.app.use(
       cors({
-        origin: process.env.CORS_ORIGIN,
+        origin: [process.env.CORS_ORIGIN,'http://localhost:7000'],
         credentials: true,
       })
     );
@@ -248,12 +335,8 @@ socket.on('fetchNotifications', async (data: { email: string }) => {
     // Global middleware to verify API Gateway handling
     this.app.use((req: Request, res: Response, next: NextFunction) => {
       console.log(`🌐 [API-GATEWAY] Incoming request: ${req.method} ${req.url}`);
-      // console.log("Request Body:", req.body); 
-      // console.log("Request Headers:", req.headers); 
       next();
     });
-
-    // this.app.use(limiter);
   }
 
   private routes(): void {
@@ -262,16 +345,13 @@ socket.on('fetchNotifications', async (data: { email: string }) => {
     this.app.use('/api/notifiction', notificationRoute);
     this.app.use('/', notificationRoute);
     this.app.use('/api/doctor/', doctorRouter);
-    this.app.use('/auth', authRoute);
+    this.app.use('/auth', authRoute);         
   }
 
   public startServer(port: number): void {
-
     this.httpServer.listen(port, () => {
       console.log("\x1b[44m\x1b[30m%s\x1b[0m", `🚀 [INFO] API-Gateway with Socket.io started on port ${port} ✅`);
     });
-    
-  
     
     this.httpServer.on('error', (error) => {
       console.error('HTTP Server error:', error);
@@ -285,6 +365,11 @@ socket.on('fetchNotifications', async (data: { email: string }) => {
 
   public getAdminNamespace(): any {
     return this.adminNamespace;
+  }
+
+  
+  public getUserSocketMap(): Map<string, { socketId: string; role: string }> {
+    return this.userSocketMap;
   }
 }
 

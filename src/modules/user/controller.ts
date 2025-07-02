@@ -347,16 +347,14 @@ ChangingUserInformations = async(req: Request, res: Response): Promise<void> => 
 
 
 CancelingUserAppointMent = async(req: Request, res: Response): Promise<void> => {
-  console.log('.check the data while the user appoinment cancell tyme....', req.body);
   
   DoctorService.CancelUserAppointMent(
     {...req.body},
     (err: any, result: any) => {
       if (err) {
-        console.log('api controller error', err);
         res.status(StatusCode.BadRequest).json({ message: err });
       } else {
-        console.log('user appointments responce in api gateway:', result);
+
         res.status(StatusCode.Created).json(result);
       }
     }

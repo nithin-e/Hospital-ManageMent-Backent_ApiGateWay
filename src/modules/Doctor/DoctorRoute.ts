@@ -10,7 +10,8 @@ DoctorRouter.post('/appointment-slots',AuthController.validateTokens('doctor'),D
 DoctorRouter.post('/fetchDoctorSlots',AuthController.validateTokens('doctor'),DoctorControllers.fetchDoctorSlots)
 DoctorRouter.post('/fectingAppointMentSlotes',AuthController.validateTokens('doctor'),DoctorControllers.fetchAppontMentSlotes)
 DoctorRouter.get('/fectingAllUserAppointMents',AuthController.validateTokens('doctor'),DoctorControllers.fectingAllUserAppointMents)
+ DoctorRouter.post('/appointment-alert',DoctorControllers.SendingAlertInDoctorDash)
 
-// fectingAllUserAppointMents
+
 
 export default DoctorRouter

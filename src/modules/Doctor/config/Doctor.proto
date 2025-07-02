@@ -20,7 +20,34 @@ service DoctorService {
 
   rpc CancelUserAppointMent (CancelUserAppointMentRequest) returns (CancelUserAppointMentResponse) {}
 
+  rpc StoreMessage(StoreMessageRequest) returns (StoreMessageResponse) {}
+
+
 }
+
+
+
+
+message StoreMessageRequest {
+  string appointmentId = 1;
+  string messageType = 2;      
+  string content = 3;
+  string senderType = 4;       
+  string timestamp = 5;
+  string senderId = 8;         
+}
+
+
+message StoreMessageResponse {
+  bool success = 1;
+  string message = 2;
+  string messageId = 3;
+  string conversationId = 4;
+  string doctorId=5;
+
+}
+
+
 
 message CancelUserAppointMentRequest {
 string time = 1;
@@ -83,6 +110,8 @@ message Appointment {
   string amount = 15 ;
   string doctorAmount = 16;
   string adminAmount = 17 ;
+  string userRefoundAmount = 18 ;
+
 }
 
 message fectingAllUserAppointMentsRequest{
@@ -113,6 +142,8 @@ message StoreAppointMentRequest {
   string doctorName = 7;          
   string specialty = 8;       
   string userEmail = 9; 
+  string userId = 10; 
+  string doctorId = 11; 
        
 }
 

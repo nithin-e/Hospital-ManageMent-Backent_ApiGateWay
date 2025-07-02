@@ -2,6 +2,8 @@ import { status } from "@grpc/grpc-js";
 import { UserService } from "../user/config/user.client";
 import { DoctorService } from "./config/Doctor.client";
 import { Response, Request } from "express";
+import App from "../../app";
+
 
 
 
@@ -240,5 +242,90 @@ fectingAllUserAppointMents = async (req: Request, res: Response): Promise<void> 
   }
 }
 
+
+
+SendingAlertInDoctorDash = async (req: Request, res: Response): Promise<void> => {
+  try {
+   
+
+    const {startedAppointments} = req.body;
+   
+    startedAppointments.forEach(element => {
+      console.log("element====",element);
+      
+      App.sendingAlertIn_DoctorDashboard(element);
+
+    });
+    
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+
+
+StoringMessagesInDb = async (messageData) => {
+  try {
+    return new Promise((resolve, reject) => {
+      console.log('API gateway StoreMessage request:', messageData);
+      
+      // Map the incoming data to match the gRPC proto structure
+      const grpcMessageData = {
+        appointmentId: messageData.appointmentId || '',
+        messageType: messageData.type || messageData.messageType || 'text',
+        content: messageData.text || messageData.content || '',
+        senderType: messageData.sender || messageData.senderType || '',
+        timestamp: messageData.timestamp || new Date().toISOString(),
+        senderId: messageData.senderId || messageData.userId || ''
+      };
+
+      
+     
+      
+      
+      
+     
+      
+     
+      
+      
+
+      console.log('Mapped gRPC message data:', grpcMessageData);
+      
+      DoctorService.StoreMessage(grpcMessageData, (err, result) => {
+        if (err) {
+          console.log('API gateway StoreMessage error:', err);
+          const errorResponse = {
+            success: false,
+            message: err.message || 'Failed to store message',
+            messageId: null,
+            conversationId: null,
+            savedAt: null
+          };
+          resolve(errorResponse);
+        } else {
+          console.log('Store message result:', result);
+          const response = {
+            success: result.success || false,
+            message: result.message || 'Message stored successfully',
+            messageId: result.messageId || null,
+            conversationId: result.conversationId || null,
+            doctorId: result.doctorId || null
+          };
+          resolve(response);
+        }
+      });
+    });
+  } catch (error) {
+    console.error('API Gateway StoreMessage error:', error);
+    return {
+      success: false,
+      message: `Unexpected error occurred: ${error.message}`,
+      messageId: null,
+      conversationId: null,
+      savedAt: null
+    };
+  }
+};
 
 }
