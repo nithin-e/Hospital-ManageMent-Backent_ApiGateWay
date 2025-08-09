@@ -25,8 +25,8 @@ const DoctorService = new grpcObject.Doctor.DoctorService(
   `${Domain}:${process.env.Doctor_GRPC_PORT}`,
   grpc.credentials.createInsecure(),
   {
-    'grpc.max_send_message_length': 10 * 1024 * 1024, // 10MB
-    'grpc.max_receive_message_length': 10 * 1024 * 1024 // 10MB
+    'grpc.max_send_message_length': 10 * 1024 * 1024, 
+    'grpc.max_receive_message_length': 10 * 1024 * 1024 
   }
 )
 

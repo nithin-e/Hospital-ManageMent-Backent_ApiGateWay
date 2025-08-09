@@ -12,7 +12,7 @@ userRoute.post('/register',controller.register)
 userRoute.post('/checkUser',controller.checkUser)
 userRoute.post('/loginUser',controller.loginUser)
 
-// Apply doctor route - only users can apply to become doctors
+
 userRoute.post('/applyDoctor', 
     AuthController.validateTokens('user'), 
     upload.fields([
@@ -22,7 +22,7 @@ userRoute.post('/applyDoctor',
     controller.storingDoctorData
 )
 
-//fectingAppointMent
+
 userRoute.post('/forgetPassword',controller.changingPassword)
 userRoute.post('/fetchDoctorDashBoardData',controller.fetchDoctorDashBoardData)
 userRoute.post('/fectingUserProfileData',AuthController.validateTokens('user'),controller.fectingUserProfileData)
@@ -34,6 +34,7 @@ userRoute.post('/fectingAppointMent',AuthController.validateTokens('user'),contr
 userRoute.post('/ChangingUserInfo',AuthController.validateTokens('user'),controller.ChangingUserInformations)
 userRoute.post('/create-checkout-session',AuthController.validateTokens('user'),controller.create_checkOutSession_in_Stripe)
 userRoute.post('/CancelingUserAppointMent',AuthController.validateTokens('user'),controller.CancelingUserAppointMent)
+userRoute.post('/fetchUserConversations',controller.fetchUserConversations)
 
 
 

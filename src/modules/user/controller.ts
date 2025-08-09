@@ -3,6 +3,7 @@ import { UserService } from "./config/user.client"
 import uploadToS3 from "../../services/s3";
 import { DoctorService } from "../Doctor/config/Doctor.client";
 import { NotificationService } from "../Notifications/config/notification.client";
+import { ApplyDoctorResponse, checkUserResponse, fectAllDoctorsResponse, fectingUserProfileDatasResponse, FetchDoctorDashBoardDataResponse, fetchingAppontMentSlotesResponse, fetchingConversationsResponse, fetchingUserAppointmentsResponse, LoginUserResponse, RegisterResponse, ResetPasswordResponse, StoreAppointMentResponse } from "./IuserInterface/userInterFace";
 
 
 
@@ -19,23 +20,24 @@ const StatusCode = {
 
 export default class userController {
 
+
 register = async (req: Request, res: Response): Promise<void> => {
-  console.log('machaneeeeeeee rahathalle', req.body);
+ 
   const registerRequest = {
     name: req.body.name,
     email: req.body.email,
     password: req.body.password,
     phoneNumber: req.body.phoneNumber,
-    googleId: req.body.googleId, // added googleId here
+    googleId: req.body.googleId,
   };
 
   try {
-    UserService.Register(registerRequest, (err: any, result: any) => {
+    UserService.Register(registerRequest, (err: Error | null, result: RegisterResponse) => {
       if (err) {
-        console.log('machaneeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee', err);
+       
         res.status(StatusCode.BadRequest).json({ message: err });
       } else {
-        console.log('else', result); // Should log the full response
+        console.log('else', result); 
         res.status(StatusCode.Created).json(result);
       }
     });
@@ -45,11 +47,12 @@ register = async (req: Request, res: Response): Promise<void> => {
   }
   }
 
+
+
 checkUser = async (req: Request, res: Response): Promise<void> => {
-  
     UserService.CheckUser(
       { ...req.body },  
-      (err: any, result: any) => {
+      (err: Error | null, result: checkUserResponse) => {
         if (err) {
           console.log('api controller checkUser', err);
           res.status(StatusCode.BadRequest).json({ message: err });
@@ -70,7 +73,7 @@ loginUser=async(req:Request,res:Response):Promise<void>=>{
       
       
       {...req.body},
-      (err:any,result:any)=>{
+      (err: Error | null,result:LoginUserResponse)=>{
         if (err) {
           console.log('api controller checkUser', err);
           res.status(StatusCode.BadRequest).json({ message: err });
@@ -96,12 +99,11 @@ storingDoctorData = async(req: Request, res: Response): Promise<void> => {
       let profileImageUrl = '';
       let medicalLicenseUrl = '';
       
-      // Check if files object exists and if profileImage exists
       if (files && files.profileImage && files.profileImage[0]) {
         profileImageUrl = await uploadToS3(files.profileImage[0]);
       }
       
-      // Check if files object exists and if medicalLicense exists
+    
       if (files && files.medicalLicense && files.medicalLicense[0]) {
         medicalLicenseUrl = await uploadToS3(files.medicalLicense[0]);
       }
@@ -111,10 +113,10 @@ storingDoctorData = async(req: Request, res: Response): Promise<void> => {
       UserService.ApplyDoctor(
         {
           ...req.body,
-          documentUrls: [profileImageUrl, medicalLicenseUrl].filter(url => url), // Only include non-empty URLs
-          agreeTerms: req.body.agreeTerms === 'true' // Convert string 'true' to boolean
+          documentUrls: [profileImageUrl, medicalLicenseUrl].filter(url => url),
+          agreeTerms: req.body.agreeTerms === 'true' 
         },
-        (err: any, result: any) => {
+        (err: Error | null, result: ApplyDoctorResponse) => {
           if (err) {
             console.log('api controller checkUser', err);
             res.status(StatusCode.BadRequest).json({ message: err });
@@ -142,7 +144,7 @@ changingPassword=async(req:Request,res:Response):Promise<void>=>{
       
       
       {...req.body},
-      (err:any,result:any)=>{
+      (err: Error | null,result:ResetPasswordResponse)=>{
         if (err) {
           console.log('api controller forget pass', err);
           res.status(StatusCode.BadRequest).json({ message: err });
@@ -162,12 +164,12 @@ fetchDoctorDashBoardData = async(req: Request, res: Response): Promise<void> => 
     
     UserService.FetchDoctorDashBoardData(
       {...req.body},
-      (err: any, result: any) => {
+      (err: Error | null, result: FetchDoctorDashBoardDataResponse) => {
         if (err) {
           console.log('api controller error', err);
           res.status(StatusCode.BadRequest).json({ message: err });
         } else {
-          // console.log('Doctor dashboard data:', result);
+         console.log('Doctor dashboard data:', result);
           
           // The result should now contain the doctor object directly
           if (result && result.doctor) {
@@ -187,7 +189,7 @@ fectingUserProfileData = async(req: Request, res: Response): Promise<void> => {
     
     UserService.fectingUserProfileDatas(
       {...req.body},
-      (err: any, result: any) => {
+      (err: Error | null, result: fectingUserProfileDatasResponse) => {
         if (err) {
           console.log('api controller error', err);
           res.status(StatusCode.BadRequest).json({ message: err });
@@ -206,7 +208,7 @@ changing_UserPassWord = async(req: Request, res: Response): Promise<void> => {
     
     UserService.changingUserPassWord(
       {...req.body},
-      (err: any, result: any) => {
+      (err: Error | null, result: ResetPasswordResponse) => {
         if (err) {
           console.log('api controller error', err);
           res.status(StatusCode.BadRequest).json({ message: err });
@@ -224,7 +226,7 @@ FectFullDoctors = async (req: Request, res: Response): Promise<void> => {
            
             const request = {};
             
-            UserService.FetchAllDoctors(request, (err: any, result: any) => {
+            UserService.FetchAllDoctors(request, (err: Error | null, result: fectAllDoctorsResponse) => {
                 if (err) {
                     console.log('err from api gate way in admin controller', err);
                     res.status(StatusCode.BadRequest).json({ message: err.message });
@@ -247,7 +249,7 @@ fetchAppontMentSlotes = async (req: Request, res: Response): Promise<void> => {
       // API Controller
      DoctorService.fetchingAppontMentSlotes(
          {...req.body},
-         async (err: any, result: any) => {
+         async (err: Error | null, result:fetchingAppontMentSlotesResponse) => {
            if (err) {
              console.log('api doctor controller error', err);
              res.status(StatusCode.BadRequest).json({ message: err });
@@ -271,7 +273,7 @@ makingAppointMent = async (req: Request, res: Response): Promise<void> => {
    // API Controller
   DoctorService.StoreAppointMent(
       {...req.body},
-      async (err: any, result: any) => {
+      async (err: Error | null, result:StoreAppointMentResponse) => {
         if (err) {
           console.log('api doctor controller error', err);
           res.status(StatusCode.BadRequest).json({ message: err });
@@ -294,12 +296,12 @@ fectingUserAppointMents = async(req: Request, res: Response): Promise<void> => {
     
     DoctorService.fectingUserAppointMents(
       {...req.body},
-      (err: any, result: any) => {
+      (err: Error | null, result: fetchingUserAppointmentsResponse) => {
         if (err) {
           console.log('api controller error', err);
           res.status(StatusCode.BadRequest).json({ message: err });
         } else {
-          console.log('user appointments responce in api gateway:', result);
+          console.log('<>user<>appointments<>responce<> <>in<>api<>gateway<>:', result);
           res.status(StatusCode.Created).json(result);
         }
       }
@@ -312,7 +314,7 @@ ChangingUserInformations = async(req: Request, res: Response): Promise<void> => 
     
     UserService.ChangingUserInfo(
       {...req.body},
-      (err: any, result: any) => {
+      (err: Error | null, result: ResetPasswordResponse) => {
         if (err) {
           console.log('api controller error', err);
           res.status(StatusCode.BadRequest).json({ message: err });
@@ -331,7 +333,7 @@ ChangingUserInformations = async(req: Request, res: Response): Promise<void> => 
     
     NotificationService.CreateCheckoutSession(
         {...req.body}, // This contains appointmentData
-        (err: any, result: any) => {
+        (err: Error | null, result) => {
             if (err) {
                 console.log('api controller error', err);
                 res.status(StatusCode.BadRequest).json({ message: err });
@@ -350,7 +352,7 @@ CancelingUserAppointMent = async(req: Request, res: Response): Promise<void> => 
   
   DoctorService.CancelUserAppointMent(
     {...req.body},
-    (err: any, result: any) => {
+    (err: Error | null, result: ResetPasswordResponse) => {
       if (err) {
         res.status(StatusCode.BadRequest).json({ message: err });
       } else {
@@ -361,6 +363,30 @@ CancelingUserAppointMent = async(req: Request, res: Response): Promise<void> => 
   );
 }
 
+
+fetchUserConversations = async (req: Request, res: Response): Promise<void> => {
+    
+  console.log('check here the userId and doctorId',req.body)
+
+  // API Controller
+ DoctorService.fetchingConversations(
+     {...req.body},
+     async (err: Error | null, result:fetchingConversationsResponse) => {
+       if (err) {
+         console.log('api doctor controller error', err);
+         res.status(StatusCode.BadRequest).json({ message: err });
+       } else {
+ 
+        console.log('...check slotes and   result verfiy this....',result)
+        
+ 
+         res.status(StatusCode.Created).json({
+            result
+         });
+       }
+     }
+   );
+ }
 
 
 

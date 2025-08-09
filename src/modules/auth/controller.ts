@@ -14,6 +14,28 @@ const StatusCode = {
   };
 
 
+  interface ValidateTokenResponse {
+    is_valid:boolean;
+    has_required_role:boolean;
+    user_id:string;
+    user_roles:string;
+    message:string
+  }
+
+  interface RefreshTokenResponse {
+    success:boolean;
+    accessToken:string;
+    refreshToken:string;
+    message:string;
+    user_id:string;
+  }
+
+
+ 
+
+
+
+
 export default class authController {
   
   validateTokens = (allowedRoles: string | string[]) => {
@@ -40,7 +62,7 @@ export default class authController {
             
             const request = {
                 token: token,
-                required_role:roleString  // Now it's always a string
+                required_role:roleString  
             };
 
             console.log('check out the datas', request);
@@ -50,7 +72,7 @@ export default class authController {
 
             AuthService.ValidateToken(
                 request,  
-                (err: any, result: any) => {
+                (err: Error | null,  result: ValidateTokenResponse) => {
                     if (err) {
                         console.log('gRPC error:', err);
                         res.status(500).json({ message: 'Authentication service error' });
@@ -103,7 +125,7 @@ refreshToken = async (req: Request, response: Response): Promise<void> => {
         // Call AuthService to refresh the token
         AuthService.RefreshToken(
             request,
-            (err: any, result: any) => {
+            (err: Error | null, result) => {
                 if (err) {
                     console.error('gRPC error during token refresh:', err);
                     response.status(StatusCode.InternalServerError).json({

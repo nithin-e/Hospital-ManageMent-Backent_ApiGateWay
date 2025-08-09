@@ -3,23 +3,66 @@ syntax = "proto3";
 package user_package;  
 
 service User {
+
   rpc Register(RegisterRequest) returns (RegisterResponse) {}
+
   rpc CheckUser(CheckUserRequest) returns (CheckUserResponse) {}
+
   rpc LoginUser(LoginUserRequest) returns (LoginUserResponse) {}
+
   rpc FetchAllUsers(FetchAllUsersRequest) returns (FetchAllUsersResponse) {}
+
   rpc ResetPassword(ResetPasswordRequest) returns (ResetPasswordResponse) {}
+
   rpc ApplyDoctor(ApplyDoctorRequest) returns (ApplyDoctorResponse) {}
+
   rpc FetchAllDoctors(fectAllDoctorsRequest) returns (fectAllDoctorsResponse){}
-  rpc UpdateDoctorStatusAfterAdminApprove(UpdateDoctorStatusAfterAdminApproveRequest) returns (UpdateDoctorStatusAfterAdminApproveResponse){}
-  rpc UpdateDoctorStatusAndUserRole(UpdateDoctorStatusAndUserRoleRequest) returns (UpdateDoctorStatusAndUserRoleResponse) {}
+
+
+
   rpc DeleteDoctorAfterAdminReject (DeleteDoctorRequest) returns (DeleteDoctorResponse){}
+
   rpc FetchDoctorDashBoardData  (FetchDoctorDashBoardDataRequest) returns (FetchDoctorDashBoardDataResponse) {}
+
   rpc fectingUserProfileDatas (fectingUserProfileDatasRequest) returns (fectingUserProfileDatasResponse) {}
+
   rpc changingUserPassWord (changingUserPassWordRequest) returns (changingUserPassWordResponse) {}
+
   rpc ChangingUserInfo (ChangingUserInfoRequest) returns (ChangingUserInfoResponse) {}
+
   rpc SearchUsers(SearchUsersRequest) returns (SearchUsersResponse){}
+
   rpc BlockUser(BlockUserRequest) returns (BlockUserResponse){}
+
   rpc UnblockUser(UnblockUserRequest) returns (UnblockUserResponse){}
+
+  rpc fecthingUserDetailsThroughSockets(UserDetailsThroughSocketRequest) returns (UserDetailsThroughSocketResponse) {}
+
+  rpc blockingDoctor (blockingDoctorRequest) returns (blockingDoctorResponse) {}
+
+}
+
+
+
+
+message blockingDoctorRequest {
+string email = 1 ;
+}
+
+message blockingDoctorResponse {
+  bool success = 1;
+}
+
+
+
+message UserDetailsThroughSocketRequest {
+    string doctorId = 1;
+    string patientId = 2;
+}
+
+
+message UserDetailsThroughSocketResponse {
+ Userr user = 1; 
 }
 
 
@@ -72,7 +115,7 @@ message Userr {
   string lastLoginAt = 9;
 }
 
-// Search Users
+
 message SearchUsersRequest {
   string searchQuery = 1;
   
@@ -140,23 +183,11 @@ Doctor doctor = 1;
 bool success = 1;
  }
 
-message UpdateDoctorStatusAndUserRoleRequest {
-   string email = 1;
-}
-
-message UpdateDoctorStatusAndUserRoleResponse {
- bool success = 1;
-}
 
 
 
-message UpdateDoctorStatusAfterAdminApproveRequest {
-  string email = 1;
-}
 
-message UpdateDoctorStatusAfterAdminApproveResponse {
-  bool success = 1;
-}
+
 
 
 
@@ -175,6 +206,7 @@ message Doctor {
   string medicalLicenseUrl = 12;
   string status = 13;
   string createdAt = 14;
+  bool isActive =15;
 }
 
 
@@ -191,16 +223,18 @@ message fectAllDoctorsResponse {
 
 
 message UserData {  
-  string id = 1;
+  string _id = 1;
+
   string name = 2;
   string email = 3;
-  string password = 4; // can be empty for Google Auth
+  string password = 4; 
   string phone_number = 5;
   string created_at = 6;
   int32 version = 7;
-  string google_id = 8; // added googleId here
+  string google_id = 8;
   string role = 9; 
   bool isActive = 10;
+  string id =11;
 }
 
 message RegisterRequest {

@@ -101,7 +101,7 @@ export default class NotificationController {
     console.log('.notification data....', req.body);
     NotificationService.CreateNotification(
         { ...req.body },
-        async (err: any, result: any) => {
+        async (err: Error | null, result) => {
             if (err) {
                 console.log('api notification controller forget pass', err);
                 res.status(StatusCode.BadRequest).json({ message: err });
@@ -109,7 +109,7 @@ export default class NotificationController {
                 console.log('..api notification controller enthelum kittando..', result);
                 
                 try {
-                    // Assuming you have userId in req.body or result
+                  
                     const email = req.body.userId || result.notification.userId||result.notification.user_id;
                     console.log('Email for doctor update:', email);
                     
@@ -117,24 +117,27 @@ export default class NotificationController {
                       email: email
                     });
                     
-                    UserService.UpdateDoctorStatusAfterAdminApprove({ email: email }, async(err:any, response:any) => {
-                      if (err) {
-                        console.error('Error updating user status:', err);
-                        res.status(StatusCode.InternalServerError).json({
-                          message: 'Notification created but failed to update user status',
-                          notification: result
-                        });
-                        return;
-                      }
+                    // UserService.UpdateDoctorStatusAfterAdminApprove({ email: email }, async(err: Error | null, response) => {
+                    //   if (err) {
+                    //     console.error('Error updating user status:', err);
+                    //     res.status(StatusCode.InternalServerError).json({
+                    //       message: 'Notification created but failed to update user status',
+                    //       notification: result
+                    //     });
+                    //     return;
+                    //   }
                       
-                      console.log('Successfully updated doctor:', response);
+                    //   console.log('Successfully updated doctor:', response);
                       
-                      res.status(StatusCode.Created).json({
+                    //   res.status(StatusCode.Created).json({
+                    //     notification: result
+                    //   })
+                
+                    // });
+
+                       res.status(StatusCode.Created).json({
                         notification: result
                       })
-                            
-
-                    });
                 } catch (userUpdateError) {
                     console.error('Error updating user status:', userUpdateError);
                     res.status(StatusCode.InternalServerError).json({
@@ -223,7 +226,7 @@ UpdateDbAfterPayment = async (req: Request, res: Response): Promise<void> => {
       // Wait for the appointment to be stored before sending response
       DoctorService.StoreAppointMent(
         appointmentData,
-        (err: any, result: any) => {
+        (err: Error | null, result) => {
           if (err) {
             console.log('err coming from webhook', err);
             res.status(StatusCode.BadRequest).json({ 
@@ -242,20 +245,20 @@ UpdateDbAfterPayment = async (req: Request, res: Response): Promise<void> => {
         }
       );
 
-      // Return here to prevent further execution
+
       return;
     }
 
-    // Handle other payment events (non-appointment)
+ 
     console.log('Processing payment webhook');
     
-    // Forward webhook to notification service
+   
     NotificationService.HandleStripeWebhook(
       {
         event_type: event.type,
         event_data: JSON.stringify(event)
       },
-      async (err: any, result: any) => {
+      async (err: Error | null, result) => {
         if (err) {
           console.error('Error forwarding webhook to notification service:', err);
           res.status(StatusCode.InternalServerError).json({ 
@@ -263,66 +266,21 @@ UpdateDbAfterPayment = async (req: Request, res: Response): Promise<void> => {
             message: 'Error processing webhook' 
           });
           return;
-        }
-        
-        try {
-          // Extract email from the checkout session
-          const email = await extractEmailFromEvent(event, stripe);
-          
-          if (!email) {
-            console.warn('Could not extract email from event');
-            res.status(StatusCode.OK).json({ 
-              received: true,
-              status: 'notification_only',
-              message: 'Payment notification received, but email not found for user update'
-            });
-            return;
-          }
-          
-          console.log('Extracted email for user update:', email);
-          
-          // Update user status
-          UserService.UpdateDoctorStatusAndUserRole({ 
-            email: email,
-          }, (userErr: any, response: any) => {
-            if (userErr) {
-              if (userErr.code === 12) { 
-                console.error('The UpdateDoctorStatusAndUserRole method is not implemented yet');
-                res.status(StatusCode.OK).json({ 
-                  received: true,
-                  status: 'notification_only',
-                  message: 'Payment notification received, but automatic status update is not available'
-                });
-              } else {
-                console.error('Error updating user status:', userErr);
-                res.status(StatusCode.InternalServerError).json({
-                  success: false,
-                  message: 'Notification created but failed to update user status',
-                  notification: result
-                });
-              }
-              return;
-            }
-            
-            console.log('Successfully updated doctor status:', response);
-            res.status(StatusCode.OK).json({ 
+        }else{
+
+          console.log('check here for the result while upadating the role',result)
+
+                      res.status(StatusCode.OK).json({ 
               received: true,
               message: 'Payment processed and user status updated successfully'
             });
-          });
-          
-        } catch (serviceError) {
-          console.error('Error calling UserService:', serviceError);
-          res.status(StatusCode.InternalServerError).json({
-            success: false,
-            message: 'Error in user service call',
-            error: serviceError instanceof Error ? serviceError.message : String(serviceError)
-          });
         }
+        
+      
       }
     );
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error in webhook controller:', error);
     
     if (error.type === 'StripeSignatureVerificationError') {
@@ -339,13 +297,7 @@ UpdateDbAfterPayment = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-// Helper function to extract email from different Stripe event types
  
-
-
-
-
-
 
 
 
@@ -360,7 +312,7 @@ handleCanceldoctorApplication = async (req: Request, res: Response): Promise<voi
   
   NotificationService.handleCanceldoctorApplication(
     servicePayload,
-      async (err: any, result: any) => {
+      async (err: Error | null, result) => {
           if (err) {
               console.log('api notification controller forget pass', err);
               res.status(StatusCode.BadRequest).json({ message: err });
@@ -393,10 +345,10 @@ RescheduleAppointmentNotification = async (email: string, time: string) => {
     return new Promise((resolve, reject) => {
       console.log('Calling notification service for email:', email, 'time:', time);
       
-      // Call the correct service method with proper parameters
+     
       NotificationService.rescheduleAppointmentNotification(
         { email, time }, // Pass both email and time
-        async (err: any, result: any) => {
+        async (err: Error | null,  result) => {
           if (err) {
             console.log('API notification controller error:', err);
             const errorResponse = {
@@ -438,7 +390,7 @@ fetchAllNotifications = async (email: string) => {
     return new Promise((resolve, reject) => {
       NotificationService.fecthAllNotifications(
         { email },
-        async (err: any, result: any) => {
+        async (err: Error | null,  result) => {
           if (err) {
             console.log('API notification controller error:', err);
             const errorResponse = {
@@ -471,6 +423,9 @@ fetchAllNotifications = async (email: string) => {
     };
   }
 }
+
+
+  
 
 
 }

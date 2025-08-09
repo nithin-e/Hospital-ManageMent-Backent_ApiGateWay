@@ -23,6 +23,132 @@ service DoctorService {
   rpc StoreMessage(StoreMessageRequest) returns (StoreMessageResponse) {}
 
 
+  rpc fetchingConversations(fetchingConversationsRequest) returns (fetchingConversationsResponse) {}
+
+ rpc AppointmentCancelingDueToUser (cancellingAppointmentDueToUserRequest) returns (cancellingAppointmentDueToUserResponse) {} 
+
+ rpc AfterTheConsultationUpdatingAppointMent (AfterTheConsultationRequest) returns (AfterTheConsultationResponse) {} 
+
+ rpc makingAddPrescription(makingAddPrescriptionRequest) returns ( makingAddPrescriptionResponse) {} 
+
+ rpc fetchingPrescription (fetchingPrescriptionRequest) returns (fetchingPrescriptionResponse) {}
+
+ rpc doctorCancellingUserBookedAppointMent (doctorCancellingUserBookedAppointMentRequest) returns (doctorCancellingUserBookedAppointMentResponse) {}
+
+}
+
+
+
+message doctorCancellingUserBookedAppointMentRequest {
+  string id = 1;
+  string doctor_id =2;
+  string  date =3;
+  string time =4;
+  bool is_booked =5;
+  string patientEmail =6;
+}
+
+
+message doctorCancellingUserBookedAppointMentResponse {
+  bool success= 1;
+}
+
+message fetchingPrescriptionRequest {
+   string doctorId = 1 ;
+   string userIdd = 2 ;
+   string appointmentId =3 ;
+   string date = 4;
+   string time =5 ;
+
+}
+
+message fetchingPrescriptionResponse {
+  string prescriptionDetails = 1 ;
+  string date = 2 ;
+  string time = 3 ;
+  string patientEmail = 4 ;
+  string doctorEmail = 5 ;
+}
+
+message makingAddPrescriptionRequest{
+
+string doctorId=1;
+string patientId=2;
+string appointmentId =3 ;
+string prescriptionDetails =4 ;
+string date =5 ;
+string time = 6 ;
+
+}
+
+
+message makingAddPrescriptionResponse{
+bool success = 1;
+}
+
+
+message AfterTheConsultationRequest {
+ string appointmentId = 1;
+ string endedBy =2;
+}
+
+message AfterTheConsultationResponse {
+ bool success = 1;
+ string patientEmail =2;
+}
+
+
+
+message cancellingAppointmentDueToUserRequest {
+  string appointmentId = 1;
+}
+
+message cancellingAppointmentDueToUserResponse {
+   bool success = 1;
+}
+
+
+
+message fetchingConversationsRequest {
+
+  string userId = 1 ; 
+  string doctorId = 2 ;
+
+}
+
+
+message MessageInfo {
+  string messageId = 1;
+  string senderId = 2;
+  string receiverId = 3;
+  string appointmentId = 4;
+  string messageType = 5;
+  string content = 6;
+  string senderType = 7;
+  string fileUrl = 8;
+  string timestamp = 9;
+  string createdAt = 10;
+  string updatedAt = 11;
+}
+
+
+
+
+
+message ConversationInfo {
+  string conversationId = 1;
+  repeated string participants = 2;
+  string appointmentId = 3;
+  string lastMessage = 4;
+  string lastMessageType = 5;
+  string lastMessageTimestamp = 6;
+  repeated MessageInfo messages = 7;
+}
+
+message fetchingConversationsResponse {
+  bool success = 1;
+  repeated ConversationInfo conversations = 2;
+  string message = 3;
 }
 
 
@@ -34,7 +160,9 @@ message StoreMessageRequest {
   string content = 3;
   string senderType = 4;       
   string timestamp = 5;
-  string senderId = 8;         
+  string senderId = 8;
+  string fileUrl = 9 ;  
+  string receverId = 10 ;      
 }
 
 
@@ -44,7 +172,6 @@ message StoreMessageResponse {
   string messageId = 3;
   string conversationId = 4;
   string doctorId=5;
-
 }
 
 
@@ -111,7 +238,9 @@ message Appointment {
   string doctorAmount = 16;
   string adminAmount = 17 ;
   string userRefoundAmount = 18 ;
-
+  string userId = 19 ;
+  string doctorId = 20 ;
+  string Prescription = 21;
 }
 
 message fectingAllUserAppointMentsRequest{
@@ -175,6 +304,7 @@ message fetchingAppontMentSlotesResponse {
   repeated DateSlots time_slots = 4; 
 }
 
+
 message fetchingDoctorSlotsRequest {
   string email = 1;
 }
@@ -230,6 +360,8 @@ message StoreAppointmentSlotsResponse {
   int32 new_slots_created = 7;
 }
 
+
+
 message AppointmentSlot {
   string id = 1;
   string doctor_id = 2;
@@ -238,3 +370,5 @@ message AppointmentSlot {
   bool is_booked = 5;
   string patientEmail = 6; 
 }
+
+

@@ -6,21 +6,38 @@ import "google/protobuf/timestamp.proto";
 
 service NotificationService {
     rpc CreateNotification(CreateNotificationRequest) returns (NotificationResponse);
+
     rpc fecthAllNotifications (fecthAllNotificationsRequest) returns (fecthAllNotificationsResponse){}
+
     rpc HandleStripeWebhook(StripeWebhookRequest) returns (StripeWebhookResponse) {}
+
     rpc handleCanceldoctorApplication (handleCanceldoctorApplicationRequest)  returns (handleCanceldoctorApplicationResponse) {}
+
     rpc rescheduleAppointmentNotification (rescheduleAppointmentNotificationRequest) returns (rescheduleAppointmentNotificationResponse) {}
+
     rpc CreateCheckoutSession (CreateCheckoutSessionRequest) returns (CreateCheckoutSessionResponse){}
+
+    rpc createAdminBlockingNotification (createAdminBlockingNotificationRequest) returns (createAdminBlockingNotificationResponse){}
+
 }
 
-//CreateCheckoutSession
 
-// Updated to match your data structure
+
+message createAdminBlockingNotificationRequest {
+  string email = 1;
+  string reason =2 ;
+}
+
+
+message createAdminBlockingNotificationResponse {
+   bool success =1;
+}
+
 message CreateCheckoutSessionRequest {
     AppointmentData appointmentData = 1;
 }
 
-// New message for appointment data
+
 message AppointmentData {
     string name = 1;
     string email = 2;

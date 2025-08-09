@@ -25,8 +25,8 @@ const NotificationService = new grpcObject.notification.NotificationService(
   `${Domain}:${process.env.Notification_GRPC_PORT}`,
   grpc.credentials.createInsecure(),
   {
-    'grpc.max_send_message_length': 10 * 1024 * 1024, // 10MB
-    'grpc.max_receive_message_length': 10 * 1024 * 1024 // 10MB
+    'grpc.max_send_message_length': 10 * 1024 * 1024,
+    'grpc.max_receive_message_length': 10 * 1024 * 1024 
   }
 )
 

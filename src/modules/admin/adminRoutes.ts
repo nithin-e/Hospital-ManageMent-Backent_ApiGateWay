@@ -11,7 +11,7 @@ adminRoute.get('/fecthAllDoctors',AuthController.validateTokens('admin'),AdminCo
 adminRoute.post('/deleteDoctorAfterReject',AuthController.validateTokens('admin'),AdminController.deleteDoctorAfterReject)
 adminRoute.get('/search',AuthController.validateTokens('admin'),AdminController.FilteringUsers)
 adminRoute.get('/FecthAppointMentForAdmin',AuthController.validateTokens('admin'),AdminController.FecthAppointMentForAdmin)
+adminRoute.post('/blockingDoctor',AuthController.validateTokens('admin'),AdminController.createAdminBlockingNotifications)
 
-// FecthAppointMentForAdmin
 
 export default adminRoute;

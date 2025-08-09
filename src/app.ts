@@ -5,6 +5,9 @@ import cookieParser from "cookie-parser";
 import compression from "compression";
 import cors from "cors";
 import http from 'http';
+const morgan = require('morgan');
+
+
 import { Server as SocketIOServer } from 'socket.io';
 
 // import { limiter } from "./utils/rateLimitter.ts";
@@ -16,11 +19,16 @@ import doctorRouter from './modules/Doctor/DoctorRoute'
 import authRoute from "./modules/auth/route";
 
 // You'll need to import your controller here
-import userBlockController from './modules/user/controller';
+
 import { UserService } from "./modules/user/config/user.client";
 import DoctorController from './modules/Doctor/DoctorController'
 const DoctorControllers = new DoctorController()
+
+
+
 import NotificationController from './modules/Notifications/Notecontroller'
+import uploadToS3 from "./services/s3";
+import { AppointmentData } from "./modules/Doctor/IdoctorInterface/IdoctorInterFace";
 const NoteController = new NotificationController()
 
 
@@ -29,7 +37,7 @@ class App {
   private httpServer: http.Server;
   private io: SocketIOServer;
   private adminNamespace: any;
-  private static instance: App; // Singleton instance
+  private static instance: App; 
   private userSocketMap: Map<string, { socketId: string; role: string }> = new Map(); 
 
   constructor() {
@@ -65,10 +73,10 @@ class App {
   }
 
   private setupSocketHandlers(): void {
-    this.adminNamespace.on('connection', (socket: any) => {
+    this.adminNamespace.on('connection', (socket) => {
       console.log('Admin client connected:', socket.id);
     
-      socket.on('register', async (data: any) => {
+      socket.on('register', async (data) => {
         console.log('Raw register data received.....................:', data);
         
         const { userId, role, email } = data;
@@ -90,14 +98,14 @@ class App {
     });
 
     
-      socket.on('block_user', async (userData: { userId: string }, callback: (response: any) => void) => {
+      socket.on('block_user', async (userData: { userId: string }, callback: (response) => void) => {
         console.log('Received block_user event with data:', userData);
         try {
-          // Instead of going through the controller, call the service directly
+          
           const result = await new Promise((resolve, reject) => {
             UserService.BlockUser(
               { id: userData.userId },
-              (err: any, result: any) => {
+              (err: Error | null, result) => {
                 if (err) reject(err);
                 else resolve(result);
               }
@@ -111,21 +119,21 @@ class App {
           });
           
           callback({ success: true, result });
-        } catch (error: any) {
+        } catch (error) {
           console.error('Error in block_user event handler:', error);
           callback({ success: false, error: error.message });
         }
       });
       
       // Handle user unblock via socket
-      socket.on('unblock_user', async (userData: { userId: string }, callback: (response: any) => void) => {
+      socket.on('unblock_user', async (userData: { userId: string }, callback: (response) => void) => {
         try {
           console.log('Received unblock_user event with data:', userData);
 
           const result = await new Promise((resolve, reject) => {
             UserService.UnblockUser(
               { id: userData.userId },
-              (err: any, result: any) => {
+              (err: Error | null, result) => {
                 if (err) reject(err);
                 else resolve(result);
               }
@@ -139,7 +147,7 @@ class App {
           });
       
           callback({ success: true, result });
-        } catch (error: any) {
+        } catch (error) {
           console.error('Error in unblock_user event handler:', error);
           callback({ success: false, error: error.message });
         }
@@ -161,25 +169,18 @@ class App {
           time12: string;
           available: boolean;
         };
-      }, callback: (response: any) => void) => {
+      }, callback: (response) => void) => {
         console.log('Received reschedule-appointment event:', rescheduleData);
         
         try {
-          console.log('Processing reschedule appointment...');
-      
-          // Call the reschedule appointment method
+        
           const res = await DoctorControllers.RescheduleAppointment(rescheduleData);
-          
-          console.log('Controller response:', res);
-          
-          // Type assertion to access status property
-          const typedRes = res as { status: string; data: any; message: string };
+          const typedRes = res as { status: string; data; message: string };
           
           if (typedRes.status === 'success') {
-            // Format the new appointment time for notification
+    
             const newAppointmentTime = `${rescheduleData.newSlot.time12}`
-            
-            // Send notification to patient
+               
             const patientNotificationRes = await NoteController.RescheduleAppointmentNotification(
               rescheduleData.patientEmail, 
               newAppointmentTime
@@ -201,7 +202,7 @@ class App {
             });
           }
           
-        } catch (error: any) {
+        } catch (error) {
           console.error('Error in reschedule-appointment handler:', error);
           callback({ 
             success: false, 
@@ -219,7 +220,7 @@ class App {
           // Emit response back to the client
           socket.emit('notificationsResponse', response);
           
-        } catch (error: any) {
+        } catch (error) {
           console.error('Error fetching notifications:', error);
           socket.emit('notificationsResponse', { 
             success: false, 
@@ -228,30 +229,165 @@ class App {
         }
       })
 
+
+
       socket.on('sendMessage', async (messageData) => {
-      
-        console.log('bro plz check here <<<>>>',messageData);
         
         interface MessageResponse {
-          success: boolean;
-          message: string;
-          messageId: string;
-          conversationId: string;
-          doctorId: string;
+            success: boolean;
+            message: string;
+            messageId: string;
+            conversationId: string;
+            doctorId: string;
         }
         
-         const response = await DoctorControllers.StoringMessagesInDb(messageData)as MessageResponse
-        //  const doctorSocketInfo = App.instance.userSocketMap.get(response.doctorId) 
-         const mapAsObject = Object.fromEntries(this.userSocketMap);
-         console.log('Current userSocketMap as Object:', mapAsObject);
-         
+        // Handle file upload
+        if (messageData.type === 'file' || messageData.type === 'image' || messageData.fileContent) {
+            try {
+                let buffer: Buffer;
+                
+              
+                if (Buffer.isBuffer(messageData.fileContent)) {
+                    buffer = messageData.fileContent;
+                } else if (typeof messageData.fileContent === 'string') {
+                    const base64Data = messageData.fileContent.includes(',') 
+                        ? messageData.fileContent.split(',')[1] 
+                        : messageData.fileContent;
+                    buffer = Buffer.from(base64Data, 'base64');
+                } else {
+                    throw new Error('Invalid fileContent format');
+                }
+    
+                const file = {
+                    buffer: buffer,
+                    mimetype: messageData.mimeType,
+                    originalname: messageData.fileName,
+                    size: messageData.fileSize
+                };
+    
+                const fileUrl = await uploadToS3(file as any);
+                messageData.fileUrl = fileUrl;
+                
+                console.log('File uploaded successfully:', fileUrl);
+                
+            } catch (error) {
+                console.error('S3 upload error:', error);
+               
+            }
+        }
+    
+        
 
-        //  console.log('now u will definetly get the doctor socket id',doctorSocketInfo);
-         
- 
-      });
+
+
+       await DoctorControllers.StoringMessagesInDb(messageData) as MessageResponse;
+    
+
+
+
+        // Send message to appropriate recipient
+        if (messageData.sender == 'user') {
+            
+            
+            const doctorSocketInfo = this.userSocketMap.get(messageData.receverId);
+
+            console.log('plz check the doctor details',doctorSocketInfo)
+            if (doctorSocketInfo) {
+                this.adminNamespace.to(doctorSocketInfo.socketId).emit("receive", {
+                    type: "msgReceive",
+                    data: messageData
+                });
+            }
+        } else {
+            const userSocketInfo = this.userSocketMap.get(messageData.receiverId || messageData.receverId);
+            console.log('check this message data first', messageData);
+            if (userSocketInfo) {
+                this.adminNamespace.to(userSocketInfo.socketId).emit("receive", {
+                    type: "msgReceive",
+                    data: messageData
+                });
+            }
+        }
+    });
 
     
+      socket.on('initiateConsultation',async(messageData)=>{
+       
+        
+        const userSocketInfo = this.userSocketMap.get(messageData.patientId);
+        this.adminNamespace.to(userSocketInfo.socketId).emit("incomingConsultation", {
+          data: messageData
+        });
+      })
+
+
+      socket.on('userInformationForVideoCall', async (callData) => { 
+        try {
+            const response = await DoctorControllers.fecthingUserDetailsThroughSocket(callData);
+            const doctorSocketInfo = this.userSocketMap.get(callData.doctorId);
+            if (doctorSocketInfo) {
+                this.adminNamespace.to(doctorSocketInfo.socketId).emit("userDetailsResponse", {
+                    type: "datailsReceive",
+                    data: response
+                });
+            }
+        } catch (error) {
+            console.error('Error fetching user details:', error);
+            const errorResponse = {
+                type: "error",
+                message: "Failed to fetch user details",
+                error: error.message
+            };
+            socket.emit("userDetailsResponse", errorResponse);
+        }
+    });
+      
+
+
+
+     socket.on('AppointmentCancelled',async(AppointmentInfo)=>{
+        await DoctorControllers.CancellingAppointmentDueToUser(AppointmentInfo);
+     })
+
+
+
+     interface ConsultationResponse {
+        success: boolean;
+          patientEmail: string;
+        }
+
+     socket.on('call-ended', async (AppointmentInfo) => {
+
+  const res = await DoctorControllers.afterTheConsultation(AppointmentInfo) as ConsultationResponse;
+
+          
+  const userSocketInfo = this.userSocketMap.get(res.patientEmail);
+  if(userSocketInfo.socketId){
+     this.adminNamespace.to(userSocketInfo.socketId).emit("AutoMaticLeave",{message: "Call ended by doctor"});
+  }else{
+    console.log('userSocketInfo is not available for the patient email:',res.patientEmail);
+  }
+   
+});
+    
+
+ 
+
+
+socket.on('canceling_Booked_UserAppointMent', async (AppointmentData: AppointmentData[]) => {
+  console.log('check this data while removing booked slots', AppointmentData);
+  
+  try {
+    const promises = AppointmentData.map(appointment => 
+      DoctorControllers.canceling_Booked_UserAppointMent(appointment)
+    );
+    
+    const results = await Promise.all(promises);
+    console.log('All appointments processed:', results);
+  } catch (error) {
+    console.error('Error processing appointments:', error);
+  }
+});
 
 
       socket.on('disconnect', () => {
@@ -270,7 +406,7 @@ class App {
 
 
   // Fixed static method
- public static sendingAlertIn_DoctorDashboard(appointmentData: any) {
+ public static sendingAlertIn_DoctorDashboard(appointmentData) {
     console.log("Sending alert to doctor dashboard:", appointmentData);
     
     if (!App.instance) {
@@ -287,9 +423,6 @@ class App {
     
     if (doctorSocketInfo) {
         console.log(`Alert sent to doctor ${appointmentData.doctorEmail} on socket ${doctorSocketInfo.socketId}`);
-
-
-
         App.instance.adminNamespace.to(doctorSocketInfo.socketId).emit("doctor_alert", {
           type: "appointment_update",
           data: appointmentData
@@ -327,14 +460,23 @@ class App {
       })
     );
 
+    this.app.use(morgan('dev'))
     this.app.use(compression());
     this.app.use(helmet());
     this.app.use(logger("dev"));
     this.app.use(cookieParser());
 
-    // Global middleware to verify API Gateway handling
+    
+
+
+    
+
+
+
+
+
+
     this.app.use((req: Request, res: Response, next: NextFunction) => {
-      console.log(`🌐 [API-GATEWAY] Incoming request: ${req.method} ${req.url}`);
       next();
     });
   }
@@ -363,7 +505,7 @@ class App {
     return this.io;
   }
 
-  public getAdminNamespace(): any {
+  public getAdminNamespace() {
     return this.adminNamespace;
   }
 

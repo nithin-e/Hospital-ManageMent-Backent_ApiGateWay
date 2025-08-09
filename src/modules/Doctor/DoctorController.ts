@@ -3,6 +3,7 @@ import { UserService } from "../user/config/user.client";
 import { DoctorService } from "./config/Doctor.client";
 import { Response, Request } from "express";
 import App from "../../app";
+import { AppointmentData, FetchingAppointmentSlotsResponse, FetchingDoctorSlotsResponse, fetchingPrescriptionResponse, fetchingUserAppointmentsResponse, makingAddPrescriptionResponse, StoreAppointmentSlotsResponse } from "./IdoctorInterface/IdoctorInterFace";
 
 
 
@@ -67,13 +68,13 @@ export default class DoctorController {
   
 
 
-      console.log('...................77777776666666666666777777777................',serviceData);
+     
       
 
       // Call gRPC Service
       DoctorService.StoreAppointmentSlots(
         serviceData,
-        (err: any, result: any) => {
+        (err: Error | null, result: StoreAppointmentSlotsResponse) => {
           if (err) {
             console.log('API doctor controller error:', err);
             return res.status(StatusCode.BadRequest).json({ 
@@ -106,7 +107,7 @@ fetchDoctorSlots = async (req: Request, res: Response): Promise<void> => {
  // API Controller
 DoctorService.fetchingDoctorSlots(
     {...req.body},
-    async (err: any, result: any) => {
+    async (err: Error | null, result: FetchingDoctorSlotsResponse) => {
       if (err) {
         console.log('api doctor controller error', err);
         res.status(StatusCode.BadRequest).json({ message: err });
@@ -129,7 +130,7 @@ fetchAppontMentSlotes = async (req: Request, res: Response): Promise<void> => {
  // API Controller
 DoctorService.fetchingAppontMentSlotes(
     {...req.body},
-    async (err: any, result: any) => {
+    async (err: Error | null, result: FetchingAppointmentSlotsResponse) => {
       if (err) {
         console.log('api doctor controller error', err);
         res.status(StatusCode.BadRequest).json({ message: err });
@@ -155,7 +156,7 @@ fectingAllUserAppointMents = async (req: Request, res: Response): Promise<void> 
   // API Controller
  DoctorService.fectingAllUserAppointMents(
   {...req.body},
-     async (err: any, result: any) => {
+     async (err: Error | null, result: fetchingUserAppointmentsResponse) => {
        if (err) {
          console.log('api doctor controller error', err);
          res.status(StatusCode.BadRequest).json({ message: err });
@@ -176,17 +177,15 @@ fectingAllUserAppointMents = async (req: Request, res: Response): Promise<void> 
 
 
 
- RescheduleAppointment = async (rescheduleData: any) => {
+ RescheduleAppointment = async (rescheduleData) => {
   try {
-  
-    
-    // Keep camelCase to match protobuf definition
+
     const transformedData = {
       action: rescheduleData.action || '',
-      patientEmail: rescheduleData.patientEmail || '',  // Keep camelCase
-      doctorEmail: rescheduleData.doctorEmail || '',    // Keep camelCase
-      originalSlot: rescheduleData.originalSlot || null, // Keep camelCase
-      newSlot: rescheduleData.newSlot || null           // Keep camelCase
+      patientEmail: rescheduleData.patientEmail || '',  
+      doctorEmail: rescheduleData.doctorEmail || '',    
+      originalSlot: rescheduleData.originalSlot || null, 
+      newSlot: rescheduleData.newSlot || null           
     };
  
     
@@ -210,7 +209,7 @@ fectingAllUserAppointMents = async (req: Request, res: Response): Promise<void> 
     return new Promise((resolve, reject) => {
       DoctorService.rescheduleAppointment(
         transformedData,  
-        async (err: any, result: any) => {
+        async (err: Error | null, result) => {
           if (err) {
             console.log('API doctor controller error:', err);
             const errorResponse = {
@@ -251,7 +250,7 @@ SendingAlertInDoctorDash = async (req: Request, res: Response): Promise<void> =>
     const {startedAppointments} = req.body;
    
     startedAppointments.forEach(element => {
-      console.log("element====",element);
+      
       
       App.sendingAlertIn_DoctorDashboard(element);
 
@@ -267,30 +266,22 @@ SendingAlertInDoctorDash = async (req: Request, res: Response): Promise<void> =>
 StoringMessagesInDb = async (messageData) => {
   try {
     return new Promise((resolve, reject) => {
-      console.log('API gateway StoreMessage request:', messageData);
-      
-      // Map the incoming data to match the gRPC proto structure
+     
       const grpcMessageData = {
-        appointmentId: messageData.appointmentId || '',
+        appointmentId: messageData.appointmentId ||messageData.conversationId|| '',
         messageType: messageData.type || messageData.messageType || 'text',
-        content: messageData.text || messageData.content || '',
+        content: messageData.text || messageData.content ||messageData.message||'',
         senderType: messageData.sender || messageData.senderType || '',
         timestamp: messageData.timestamp || new Date().toISOString(),
-        senderId: messageData.senderId || messageData.userId || ''
+        senderId: messageData.senderId || messageData.userId ||messageData.patientId || '',
+        fileUrl :messageData.fileUrl,
+        receverId:messageData.receverId  ||messageData.receiverId   
       };
 
       
-     
-      
-      
-      
-     
-      
-     
-      
-      
+    
 
-      console.log('Mapped gRPC message data:', grpcMessageData);
+     
       
       DoctorService.StoreMessage(grpcMessageData, (err, result) => {
         if (err) {
@@ -327,5 +318,187 @@ StoringMessagesInDb = async (messageData) => {
     };
   }
 };
+
+
+
+
+fecthingUserDetailsThroughSocket = async (callData) => {
+  try {
+      return new Promise((resolve, reject) => {
+        UserService.fecthingUserDetailsThroughSockets(callData, (err, result) => {
+              if (err) {
+                  console.log('API gateway fecthingUserDetailsThroughSocket error:', err);
+                  const errorResponse = {
+                      success: false,
+                      message: err.message || 'Failed to fetch user details',
+                      data: null
+                  };
+                  resolve(errorResponse);
+              } else {
+                  
+                  resolve(result);
+              }
+          });
+      });
+  } catch (error) {
+      console.error('API Gateway fecthingUserDetailsThroughSocket error:', error);
+      return {
+          success: false,
+          message: `Unexpected error occurred: ${error.message}`,
+          data: null
+      };
+  }
+};
+
+
+
+CancellingAppointmentDueToUser = async (callData) => {
+  try {
+
+    return new Promise((resolve, reject) => {
+      const requestData = {
+        appointmentId: callData.AppointmentInfo.appointmentId
+      };
+      
+      DoctorService.AppointmentCancelingDueToUser(requestData, (err, result) => {
+        if (err) {
+          console.log('API gateway cancellingAppointmentDueToUser error:', err);
+          const errorResponse = {
+            success: false,
+            message: err.message || 'cancellingAppointmentDueToUser',
+            data: null
+          };
+          resolve(errorResponse);
+        } else {
+          resolve(result);
+        }
+      });
+    });
+  } catch (error) {
+    console.error('API Gateway cancellingAppointmentDueToUser error:', error);
+    return {
+      success: false,
+      message: `Unexpected error occurred: ${error.message}`,
+      data: null
+    };
+  }
+}
+
+
+afterTheConsultation = async (callData) => {
+  try {
+    console.log('video chat ended', callData);
+    
+    return new Promise((resolve, reject) => {
+      const requestData = {
+        appointmentId: callData.appointmentId,
+        endedBy:callData.endedBy
+      };
+      
+      DoctorService.AfterTheConsultationUpdatingAppointMent(requestData, (err, result) => {
+        if (err) {
+          console.log('API gateway cancellingAppointmentDueToUser error:', err);
+          const errorResponse = {
+            success: false,
+            message: err.message || 'cancellingAppointmentDueToUser',
+            data: null
+          };
+          resolve(errorResponse);
+        } else {
+
+          console.log('ckeck the response  aftrt the consultation',result)
+          resolve(result);
+        }
+      });
+    });
+  } catch (error) {
+    console.error('API Gateway cancellingAppointmentDueToUser error:', error);
+    return {
+      success: false,
+      message: `Unexpected error occurred: ${error.message}`,
+      data: null
+    };
+  }
+}
+
+AddPrescription = async (req: Request, res: Response): Promise<void> => {
+ DoctorService.makingAddPrescription(
+     {...req.body},
+     async (err: Error | null, result: makingAddPrescriptionResponse) => {
+       if (err) {
+         console.log('api doctor controller error', err);
+         res.status(StatusCode.BadRequest).json({ message: err });
+       } else {
+         res.status(StatusCode.Created).json({
+            result
+         });
+       }
+     }
+   );
+ }
+
+
+fetchingUserPrescription = async (req: Request, res: Response): Promise<void> => {
+
+ DoctorService.fetchingPrescription(
+     {...req.body},
+     async (err: Error | null,result: fetchingPrescriptionResponse) => {
+       if (err) {
+         console.log('api doctor controller error', err);
+         res.status(StatusCode.BadRequest).json({ message: err });
+       } else {
+
+         res.status(StatusCode.Created).json({
+            result
+         });
+       }
+     }
+   );
+ }
+
+
+  
+
+
+ canceling_Booked_UserAppointMent = async (callData:AppointmentData) => {
+  try {
+   
+    
+    return new Promise((resolve, reject) => {
+      const requestData = {
+        id: callData.id,
+        doctor_id:callData.doctor_id,
+        date:callData.date,
+        time:callData.time,
+        patientEmail:callData.patientEmail,
+        is_booked:callData.is_booked
+      };
+      
+      console.log('.....check here......',requestData)
+      DoctorService.doctorCancellingUserBookedAppointMent(requestData, (err, result) => {
+        if (err) {
+          console.log('API gateway cancellingAppointmentDueToUser error:', err);
+          const errorResponse = {
+            success: false,
+            message: err.message || 'cancellingAppointmentDueToUser',
+            data: null
+          };
+          resolve(errorResponse);
+        } else {
+
+          console.log('ckeck the response  aftrt the consultation',result)
+          resolve(result);
+        }
+      });
+    });
+  } catch (error) {
+    console.error('API Gateway cancellingAppointmentDueToUser error:', error);
+    return {
+      success: false,
+      message: `Unexpected error occurred: ${error.message}`,
+      data: null
+    };
+  }
+}
 
 }
