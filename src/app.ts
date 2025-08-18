@@ -174,7 +174,8 @@ class App {
         
         try {
         
-          const res = await DoctorControllers.RescheduleAppointment(rescheduleData);
+          const res = await DoctorControllers.rescheduleAppointment(rescheduleData);
+          
           const typedRes = res as { status: string; data; message: string };
           
           if (typedRes.status === 'success') {
@@ -211,7 +212,7 @@ class App {
         }
       });
 
-      // Handle fetch notifications
+     
       socket.on('fetchNotifications', async (data: { email: string }) => {
         console.log('Received fetchNotifications event with email:', data.email);
         try {
@@ -379,7 +380,7 @@ socket.on('canceling_Booked_UserAppointMent', async (AppointmentData: Appointmen
   
   try {
     const promises = AppointmentData.map(appointment => 
-      DoctorControllers.canceling_Booked_UserAppointMent(appointment)
+      DoctorControllers.cancelingBookedUserAppointMent(appointment)
     );
     
     const results = await Promise.all(promises);
@@ -406,7 +407,7 @@ socket.on('canceling_Booked_UserAppointMent', async (AppointmentData: Appointmen
 
 
   // Fixed static method
- public static sendingAlertIn_DoctorDashboard(appointmentData) {
+ public static sendingAlertInDoctorDashboard(appointmentData) {
     console.log("Sending alert to doctor dashboard:", appointmentData);
     
     if (!App.instance) {
@@ -419,6 +420,12 @@ socket.on('canceling_Booked_UserAppointMent', async (AppointmentData: Appointmen
     const doctorSocketInfo = App.instance.userSocketMap.get(appointmentData.doctorId);
     const userSocketInfo = App.instance.userSocketMap.get(appointmentData.userId);
 
+    console.log('check first this',App.instance.userSocketMap);
+    
+    console.log('check this doctorSocketInfo ',doctorSocketInfo);
+    console.log('check this userSocketInfo',userSocketInfo);
+    
+    
   
     
     if (doctorSocketInfo) {

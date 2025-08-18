@@ -18,10 +18,10 @@ const StatusCode = {
     InternalServerError: 500,
   };
 
-export default class userController {
+export default class UserController  {
 
 
-register = async (req: Request, res: Response): Promise<void> => {
+registerUser  = async (req: Request, res: Response): Promise<void> => {
  
   const registerRequest = {
     name: req.body.name,
@@ -49,7 +49,7 @@ register = async (req: Request, res: Response): Promise<void> => {
 
 
 
-checkUser = async (req: Request, res: Response): Promise<void> => {
+checkUser  = async (req: Request, res: Response): Promise<void> => {
     UserService.CheckUser(
       { ...req.body },  
       (err: Error | null, result: checkUserResponse) => {
@@ -66,7 +66,7 @@ checkUser = async (req: Request, res: Response): Promise<void> => {
   };
 
 
-loginUser=async(req:Request,res:Response):Promise<void>=>{
+loginUser =async(req:Request,res:Response):Promise<void>=>{
 
     console.log('.....',req.body)
     UserService.LoginUser(
@@ -90,7 +90,7 @@ loginUser=async(req:Request,res:Response):Promise<void>=>{
 
 
 
-storingDoctorData = async(req: Request, res: Response): Promise<void> => {
+applyDoctor  = async(req: Request, res: Response): Promise<void> => {
     try {
       console.log('Doctor data received:', req.body);
       
@@ -184,7 +184,7 @@ fetchDoctorDashBoardData = async(req: Request, res: Response): Promise<void> => 
   }
 
 
-fectingUserProfileData = async(req: Request, res: Response): Promise<void> => {
+fetchingUserProfileData = async(req: Request, res: Response): Promise<void> => {
     console.log('.fetching user req.body....', req.body);
     
     UserService.fectingUserProfileDatas(
@@ -203,7 +203,7 @@ fectingUserProfileData = async(req: Request, res: Response): Promise<void> => {
 
 
 
-changing_UserPassWord = async(req: Request, res: Response): Promise<void> => {
+changingUserPassWord = async(req: Request, res: Response): Promise<void> => {
     console.log('.fetching user req.body....', req.body);
     
     UserService.changingUserPassWord(
@@ -221,11 +221,10 @@ changing_UserPassWord = async(req: Request, res: Response): Promise<void> => {
   }
 
 
-FectFullDoctors = async (req: Request, res: Response): Promise<void> => {
+FetchFullDoctors = async (req: Request, res: Response): Promise<void> => {
         try {
            
             const request = {};
-            
             UserService.FetchAllDoctors(request, (err: Error | null, result: fectAllDoctorsResponse) => {
                 if (err) {
                     console.log('err from api gate way in admin controller', err);
@@ -328,7 +327,7 @@ ChangingUserInformations = async(req: Request, res: Response): Promise<void> => 
 
 
   
-  create_checkOutSession_in_Stripe = async (req: Request, res: Response): Promise<void> => {
+  createCheckOutSessionInStripe = async (req: Request, res: Response): Promise<void> => {
     console.log('ye yee yeee yee bro check it here', req.body);
     
     NotificationService.CreateCheckoutSession(

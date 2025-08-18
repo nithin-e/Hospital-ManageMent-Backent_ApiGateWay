@@ -151,7 +151,7 @@ DoctorService.fetchingAppontMentSlotes(
 
 
 
-fectingAllUserAppointMents = async (req: Request, res: Response): Promise<void> => {
+fetchingAllUserAppointMents = async (req: Request, res: Response): Promise<void> => {
     
   // API Controller
  DoctorService.fectingAllUserAppointMents(
@@ -161,9 +161,6 @@ fectingAllUserAppointMents = async (req: Request, res: Response): Promise<void> 
          console.log('api doctor controller error', err);
          res.status(StatusCode.BadRequest).json({ message: err });
        } else {
- 
-        console.log('...check result for fecthing all appointments....',result)
-        
  
          res.status(StatusCode.Created).json({
             result
@@ -177,7 +174,7 @@ fectingAllUserAppointMents = async (req: Request, res: Response): Promise<void> 
 
 
 
- RescheduleAppointment = async (rescheduleData) => {
+ rescheduleAppointment = async (rescheduleData) => {
   try {
 
     const transformedData = {
@@ -243,7 +240,7 @@ fectingAllUserAppointMents = async (req: Request, res: Response): Promise<void> 
 
 
 
-SendingAlertInDoctorDash = async (req: Request, res: Response): Promise<void> => {
+sendingAlertInDoctorDash = async (req: Request, res: Response): Promise<void> => {
   try {
    
 
@@ -252,7 +249,7 @@ SendingAlertInDoctorDash = async (req: Request, res: Response): Promise<void> =>
     startedAppointments.forEach(element => {
       
       
-      App.sendingAlertIn_DoctorDashboard(element);
+      App.sendingAlertInDoctorDashboard(element);
 
     });
     
@@ -421,7 +418,7 @@ afterTheConsultation = async (callData) => {
   }
 }
 
-AddPrescription = async (req: Request, res: Response): Promise<void> => {
+addPrescription = async (req: Request, res: Response): Promise<void> => {
  DoctorService.makingAddPrescription(
      {...req.body},
      async (err: Error | null, result: makingAddPrescriptionResponse) => {
@@ -460,7 +457,7 @@ fetchingUserPrescription = async (req: Request, res: Response): Promise<void> =>
   
 
 
- canceling_Booked_UserAppointMent = async (callData:AppointmentData) => {
+ cancelingBookedUserAppointMent = async (callData:AppointmentData) => {
   try {
    
     
