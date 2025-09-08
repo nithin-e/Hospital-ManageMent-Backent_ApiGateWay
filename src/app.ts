@@ -8,7 +8,7 @@ import http from 'http';
 const morgan = require('morgan');
 
 
-import { Server as SocketIOServer } from 'socket.io';
+import { Namespace, Server as SocketIOServer } from 'socket.io';
 
 // import { limiter } from "./utils/rateLimitter.ts";
 
@@ -36,7 +36,7 @@ class App {
   public app: Application;
   private httpServer: http.Server;
   private io: SocketIOServer;
-  private adminNamespace: any;
+  private adminNamespace: Namespace;
   private static instance: App; 
   private userSocketMap: Map<string, { socketId: string; role: string }> = new Map(); 
 
@@ -300,8 +300,12 @@ class App {
                 });
             }
         } else {
+
+          console.log('check this message data in else',messageData)
             const userSocketInfo = this.userSocketMap.get(messageData.receiverId || messageData.receverId);
-            console.log('check this message data first', messageData);
+            console.log('check the user infoooooooo', userSocketInfo);
+            console.log('check the userSocketmap',this.userSocketMap);
+            
             if (userSocketInfo) {
                 this.adminNamespace.to(userSocketInfo.socketId).emit("receive", {
                     type: "msgReceive",
@@ -375,11 +379,11 @@ class App {
  
 
 
-socket.on('canceling_Booked_UserAppointMent', async (AppointmentData: AppointmentData[]) => {
-  console.log('check this data while removing booked slots', AppointmentData);
+socket.on('cancelingBookedUserAppointMent', async (AppointmentData: { slots: AppointmentData[] }) => {
+  console.log('check this data while removing booked slots cancelingBookedUserAppointMent', AppointmentData);
   
   try {
-    const promises = AppointmentData.map(appointment => 
+    const promises = AppointmentData.slots.map(appointment => 
       DoctorControllers.cancelingBookedUserAppointMent(appointment)
     );
     

@@ -153,15 +153,18 @@ DoctorService.fetchingAppontMentSlotes(
 
 fetchingAllUserAppointMents = async (req: Request, res: Response): Promise<void> => {
     
+
+  
   // API Controller
- DoctorService.fectingAllUserAppointMents(
+    DoctorService.fectingUserAppointMents(
   {...req.body},
      async (err: Error | null, result: fetchingUserAppointmentsResponse) => {
        if (err) {
          console.log('api doctor controller error', err);
          res.status(StatusCode.BadRequest).json({ message: err });
        } else {
- 
+     console.log('machuveeeeeeeeeeeeeeeeeeeeeeeeeeeeee',result);
+
          res.status(StatusCode.Created).json({
             result
          });
@@ -169,7 +172,6 @@ fetchingAllUserAppointMents = async (req: Request, res: Response): Promise<void>
      }
    );
  }
-
 
 
 
@@ -461,7 +463,11 @@ fetchingUserPrescription = async (req: Request, res: Response): Promise<void> =>
   try {
    
     
+    console.log('this is my booked user apppointment data',callData);
+    
     return new Promise((resolve, reject) => {
+
+
       const requestData = {
         id: callData.id,
         doctor_id:callData.doctor_id,
@@ -497,5 +503,39 @@ fetchingUserPrescription = async (req: Request, res: Response): Promise<void> =>
     };
   }
 }
+
+
+
+filteringDoctorAppoinments = async (req: Request, res: Response): Promise<void> => {
+
+  const searchRequest = {
+        searchQuery: (req.query.q as string) || "",
+        sortBy: (req.query.sortBy as string) || "createdAt",
+        sortDirection: (req.query.sortDirection as string) || "desc",
+        role: (req.query.role as string) || "",
+        page: parseInt(req.query.page as string) || 1,
+        limit: parseInt(req.query.limit as string) || 50,
+      };
+
+
+       console.log("are u getting this check the responce",searchRequest);
+
+ DoctorService.filteringDoctorAppoinments(
+     {...req.body},
+     async (err: Error | null,result: fetchingPrescriptionResponse) => {
+       if (err) {
+         console.log('api doctor controller error', err);
+         res.status(StatusCode.BadRequest).json({ message: err });
+       } else {
+          // console.log('check this responce',result)
+         res.status(StatusCode.Created).json({
+            result
+         });
+       }
+     }
+   );
+ }
+
+
 
 }

@@ -20,6 +20,7 @@ const StatusCode = {
 };
 
 export default class adminController {
+
   FectFullUsers = async (req: Request, res: Response): Promise<void> => {
     try {
       const request = {};
@@ -95,9 +96,9 @@ export default class adminController {
     }
   };
 
-  FilteringUsers = async (req: Request, res: Response): Promise<void> => {
+  filteringUsers = async (req: Request, res: Response): Promise<void> => {
     try {
-      console.log("check for this query params", req.query);
+     
 
       
       const searchRequest = {
@@ -109,7 +110,44 @@ export default class adminController {
         limit: parseInt(req.query.limit as string) || 50,
       };
 
+
+       console.log("check for this query params",searchRequest);
+
       UserService.SearchUsers(searchRequest, (err: Error | null, result) => {
+        if (err) {
+          console.log("err from api gateway in admin controller", err);
+          res.status(StatusCode.BadRequest).json({ message: err.message });
+        } else {
+          console.log("check the result query params", result);
+          res.status(StatusCode.OK).json(result);
+        }
+      });
+    } catch (error) {
+      console.log("Unexpected error:", error);
+      res
+        .status(StatusCode.InternalServerError)
+        .json({ message: "Server error" });
+    }
+  };
+
+  filteringDoctors = async (req: Request, res: Response): Promise<void> => {
+    try {
+     
+
+      
+      const searchRequest = {
+        searchQuery: (req.query.q as string) || "",
+        sortBy: (req.query.sortBy as string) || "createdAt",
+        sortDirection: (req.query.sortDirection as string) || "desc",
+        role: (req.query.role as string) || "",
+        page: parseInt(req.query.page as string) || 1,
+        limit: parseInt(req.query.limit as string) || 50,
+      };
+
+
+       console.log("check for this query params doctor list",searchRequest);
+
+      UserService.SearchDoctors(searchRequest, (err: Error | null, result) => {
         if (err) {
           console.log("err from api gateway in admin controller", err);
           res.status(StatusCode.BadRequest).json({ message: err.message });
@@ -189,4 +227,105 @@ export default class adminController {
       }
     );
   };
+
+  addNewService = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    DoctorService.addNewService(
+      { ...req.body },
+      async (err: Error | null, result) => {
+        if (err) {
+          console.log("api notification controller forget pass", err);
+          res.status(StatusCode.BadRequest).json({ message: err });
+        } else {
+                res.status(StatusCode.Created).json({
+                  result,
+                });
+            }
+        })
+  }
+
+
+  
+  fetchServices = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+
+    
+    DoctorService.fetchService(
+      { ...req.body },
+      async (err: Error | null, result) => {
+        if (err) {
+          console.log("api notification controller forget pass", err);
+          res.status(StatusCode.BadRequest).json({ message: err });
+        } else {
+
+          console.log('check the data here are u getting the services ',result)
+                res.status(StatusCode.Created).json({
+                  result,
+                });
+            }
+        })
+  }
+
+
+  deleteService = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+
+const {serviceId} = req.params;
+  
+
+    DoctorService.deleteService(
+
+       
+      {serviceId },
+      async (err: Error | null, result) => {
+        if (err) {
+          console.log("api notification controller forget pass", err);
+          res.status(StatusCode.BadRequest).json({ message: err });
+        } else {
+
+          console.log('check the data here are u getting the services ',result)
+                res.status(StatusCode.Created).json({
+                  result,
+                });
+            }
+        })
+  }
+
+
+  editService = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+
+const {serviceId} = req.params;
+  
+console.log('machuveeeee id indo ibde',req.params)
+console.log('machuveeeee id indo ibde',req.body)
+    DoctorService.editService(
+
+       
+      {serviceId,...req.body },
+      async (err: Error | null, result) => {
+        if (err) {
+          console.log("api notification controller forget pass", err);
+          res.status(StatusCode.BadRequest).json({ message: err });
+        } else {
+
+          console.log('check the data here are u getting the services ',result)
+                res.status(StatusCode.Created).json({
+                  result,
+                });
+            }
+        })
+  }
+
+
+
+
 }

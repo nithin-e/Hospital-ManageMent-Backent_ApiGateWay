@@ -253,11 +253,22 @@ UpdateDbAfterPayment = async (req: Request, res: Response): Promise<void> => {
     console.log('Processing payment webhook');
     
    
-    NotificationService.HandleStripeWebhook(
-      {
-        event_type: event.type,
-        event_data: JSON.stringify(event)
-      },
+   
+    
+
+
+    
+
+const payload={
+ eventType:event.type,
+ eventData:JSON.stringify(event)
+}
+
+console.log('payload for user service ',payload);
+
+
+    UserService.HandleStripeWebhookUpdateUser(
+        payload,
       async (err: Error | null, result) => {
         if (err) {
           console.error('Error forwarding webhook to notification service:', err);

@@ -12,9 +12,9 @@ service DoctorService {
 
   rpc StoreAppointMent  (StoreAppointMentRequest) returns (StoreAppointMentResponse) {}
 
-  rpc fectingUserAppointMents (fectingUserAppointMentsRequest) returns (fetchingUserAppointmentsResponse) {}
+  rpc fectingUserAppointMents (fectingUserAppointMentsRequestt) returns (fetchingUserAppointmentsResponsee) {}
 
-  rpc fectingAllUserAppointMents(fectingUserAppointMentsRequest) returns (fetchingUserAppointmentsResponse) {}
+rpc fectingAllUserAppointMents(fectingUserAppointMentsRequest) returns (fectingAllUserAppointMentsResponse) {}
 
   rpc RescheduleAppointment(RescheduleAppointmentRequest) returns (RescheduleAppointmentResponse) {}
 
@@ -35,8 +35,67 @@ service DoctorService {
 
  rpc doctorCancellingUserBookedAppointMent (doctorCancellingUserBookedAppointMentRequest) returns (doctorCancellingUserBookedAppointMentResponse) {}
 
+ rpc addNewService (addNewServiceRequest)returns (addNewServiceResponse){}
+
+ rpc fetchService (fetchServicesRequest) returns (fetchServicesResponse) {}
+
+ rpc deleteService (deleteServiceRequest) returns (deleteServiceResponse) {}
+
+ rpc editService (editServiceRequest) returns (editServiceResponce) {}
+
 }
 
+
+message editServiceRequest{
+string serviceId = 1;
+string name = 2;
+string description = 3;
+
+}
+
+message editServiceResponce {
+  bool success =1;
+}
+
+
+
+message deleteServiceRequest {
+   string serviceId =1;
+}
+
+message deleteServiceResponse {
+  bool success =1;
+}
+
+
+message fetchServicesRequest {
+
+}
+
+
+message Service {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string createdAt = 4;
+  string updatedAt = 5;
+ 
+}
+
+message fetchServicesResponse {
+  repeated Service services = 1;
+}
+
+
+message addNewServiceRequest{
+  string name = 1;
+  string description =2;
+}
+
+
+message addNewServiceResponse {
+  bool success =1;
+}
 
 
 message doctorCancellingUserBookedAppointMentRequest {
@@ -243,23 +302,50 @@ message Appointment {
   string Prescription = 21;
 }
 
-message fectingAllUserAppointMentsRequest{
-
+message fectingUserAppointMentsRequest {
+  int32 page = 1;
+  int32 limit = 2;
 }
 
-message fectingAllUserAppointMentsResponse{
- repeated Appointment appointments = 1;
+message fectingAllUserAppointMentsResponse {
+  repeated Appointment appointments = 1;
+  bool success = 2;
+  string message = 3;
+  int32 currentPage = 4;
+  int32 totalPages = 5;
+  int32 totalAppointments = 6;
+  int32 limit = 7;
+  bool hasNextPage = 8;
+  bool hasPrevPage = 9;
 }
 
-message fectingUserAppointMentsRequest{
-  string email = 1;
-}
+
 
 message fetchingUserAppointmentsResponse {
   repeated Appointment appointments = 1;
   bool success = 2;
   string message = 3;
 }
+
+message fectingUserAppointMentsRequestt{
+  string email = 1;
+  int32 page = 2;     
+  int32 limit = 3;       
+}
+
+message fetchingUserAppointmentsResponsee {
+  repeated Appointment appointments = 1;
+  bool success = 2;
+  string message = 3;
+  int32 currentPage = 4;    
+  int32 totalPages = 5;
+  int32 totalAppointments = 6;
+  int32 limit = 7;
+  bool hasNextPage = 8;
+  bool hasPrevPage = 9;
+}
+
+
 
 message StoreAppointMentRequest {
   string patientName = 1;           
@@ -303,7 +389,6 @@ message fetchingAppontMentSlotesResponse {
   repeated string dates = 3;
   repeated DateSlots time_slots = 4; 
 }
-
 
 message fetchingDoctorSlotsRequest {
   string email = 1;
@@ -370,5 +455,3 @@ message AppointmentSlot {
   bool is_booked = 5;
   string patientEmail = 6; 
 }
-
-

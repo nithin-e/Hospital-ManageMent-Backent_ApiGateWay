@@ -3,7 +3,6 @@ import * as grpc from '@grpc/grpc-js'
 import * as protoLoader from '@grpc/proto-loader'
 import 'dotenv/config';
 
-// const packageDef = protoLoader.loadSync(path.resolve(__dirname,'./auth.proto'))
 
 const packageDef = protoLoader.loadSync(
   path.resolve(__dirname, './auth.proto'),

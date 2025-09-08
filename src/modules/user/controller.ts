@@ -290,7 +290,7 @@ makingAppointMent = async (req: Request, res: Response): Promise<void> => {
   }
 
 
-fectingUserAppointMents = async(req: Request, res: Response): Promise<void> => {
+fectingUserAppointMents = async (req: Request, res: Response): Promise<void> => {
     console.log('.fetching user req.body....', req.body);
     
     DoctorService.fectingUserAppointMents(
