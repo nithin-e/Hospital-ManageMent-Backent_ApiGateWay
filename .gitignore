@@ -1,2 +1,43 @@
+# Node modules
+node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Environment variables
 .env
-logs/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build outputs
+dist/
+build/
+out/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Coverage and test reports
+coverage/
+*.lcov
+
+# Cache
+.npm/
+.cache/
+.vscode/
+*.swp
+
+# Temporary files
+*.tmp
+*.temp
+*.pid
+*.seed
+*.pid.lock
+
+# Ignore lock files if you don’t want them tracked
+# package-lock.json

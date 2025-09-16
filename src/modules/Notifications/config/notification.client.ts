@@ -1,9 +1,9 @@
 import path from 'path'
 import * as grpc from '@grpc/grpc-js'
 import * as protoLoader from '@grpc/proto-loader'
-import 'dotenv/config';
+import 'dotenv/config'
 
-// Load proto file with specific options
+// Load proto file with options
 const packageDef = protoLoader.loadSync(
   path.resolve(__dirname, './notification.proto'),
   {
@@ -11,22 +11,32 @@ const packageDef = protoLoader.loadSync(
     longs: String,
     enums: String,
     defaults: true,
-    oneofs: true
+    oneofs: true,
   }
 )
 
 const grpcObject = (grpc.loadPackageDefinition(packageDef) as unknown) as any
 
-const Domain = process.env.NODE_ENV === 'dev' ? process.env.DEV_DOMAIN : process.env.PRO_DOMAIN_USER
-console.log(Domain, 'Domain for notification service');
+// Detect environment
+const isDocker = process.env.NODE_ENV === 'docker'
 
-// Create client with increased message size limits
+// Inside Docker → use docker-compose service name (notificationservice)
+// Local dev → localhost (or DEV_DOMAIN if you prefer)
+const host = isDocker
+  ? process.env.NOTIFICATION_SERVICE_HOST || 'notificationservice'
+  : process.env.DEV_DOMAIN || 'localhost'
+
+const port = process.env.NOTIFICATION_GRPC_PORT || '6000'
+
+console.log(`Notification Service connecting to: ${host}:${port}`)
+
+// Create client
 const NotificationService = new grpcObject.notification.NotificationService(
-  `${Domain}:${process.env.Notification_GRPC_PORT}`,
+  `${host}:${port}`,
   grpc.credentials.createInsecure(),
   {
     'grpc.max_send_message_length': 10 * 1024 * 1024,
-    'grpc.max_receive_message_length': 10 * 1024 * 1024 
+    'grpc.max_receive_message_length': 10 * 1024 * 1024,
   }
 )
 

@@ -74,7 +74,7 @@ export default class authController {
                 request,  
                 (err: Error | null,  result: ValidateTokenResponse) => {
                     if (err) {
-                        console.log('gRPC error:', err);
+                        console.log('gRPC ....................................................error:', err);
                         res.status(500).json({ message: 'Authentication service error' });
                     } else {
 
